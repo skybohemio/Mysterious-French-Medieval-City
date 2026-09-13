@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Bourges Admin Guide</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- FontAwesome for beautiful icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f5f6f8;
+            color: #2b303a;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            min-height: 100vh;
+            background-color: #1a1e29;
+            color: #a0aec0;
+            width: 260px;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+        }
+
+        .sidebar .brand {
+            padding: 24px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #ffffff;
+            border-bottom: 1px solid #2d3748;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar .brand i {
+            color: #c5a059;
+        }
+
+        .sidebar .nav-link {
+            color: #a0aec0;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+            border-left: 4px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .sidebar .nav-link:hover {
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-left-color: rgba(197, 160, 89, 0.5);
+        }
+
+        .sidebar .nav-link.active {
+            color: #ffffff;
+            background-color: rgba(197, 160, 89, 0.1);
+            border-left-color: #c5a059;
+            font-weight: 600;
+        }
+
+        .sidebar .nav-section-title {
+            padding: 16px 24px 8px 24px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #4a5568;
+            font-weight: 700;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            margin-left: 260px;
+            padding: 40px;
+            min-height: 100vh;
+        }
+
+        /* Card Customizations */
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card-header {
+            background-color: transparent;
+            border-bottom: 1px solid #edf2f7;
+            padding: 20px 24px;
+            font-weight: 600;
+        }
+
+        /* Badge Customizations */
+        .badge-cathedral { background-color: #e2d2b5; color: #5c4308; }
+        .badge-palace { background-color: #fed7d7; color: #9b2c2c; }
+        .badge-nature { background-color: #c6f6d5; color: #22543d; }
+        .badge-museum { background-color: #e9d8fd; color: #553c9a; }
+        .badge-custom { background-color: #edf2f7; color: #4a5568; }
+
+        /* Buttons Customization */
+        .btn-primary {
+            background-color: #c5a059;
+            border-color: #c5a059;
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .btn-primary:hover, .btn-primary:focus {
+            background-color: #b08d4b;
+            border-color: #b08d4b;
+        }
+
+        .footer {
+            border-top: 1px solid #edf2f7;
+            padding: 20px 0;
+            color: #718096;
+            font-size: 0.875rem;
+            margin-top: auto;
+        }
+    </style>
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+
+    <!-- Sidebar Layout -->
+    <div class="sidebar">
+        <div class="brand">
+            <i class="fa-solid fa-microphone-lines fa-lg"></i>
+            <div>
+                <span class="d-block text-white">Bourges Admin</span>
+                <span class="text-muted fs-7" style="font-size: 0.75rem;">Audio Guide CMS</span>
+            </div>
+        </div>
+
+        <div class="nav-section-title">Navigation</div>
+        <nav class="nav flex-column">
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")" asp-controller="Home" asp-action="Index">
+                <i class="fa-solid fa-chart-pie"></i> Dashboard
+            </a>
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Sites" ? "active" : "")" asp-controller="Sites" asp-action="Index">
+                <i class="fa-solid fa-map-location-dot"></i> Points of Interest
+            </a>
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Routes" ? "active" : "")" asp-controller="Routes" asp-action="Index">
+                <i class="fa-solid fa-route"></i> Tour Routes
+            </a>
+        </nav>
+
+        <div class="nav-section-title">Data Sync</div>
+        <nav class="nav flex-column">
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["action"]?.ToString() == "Export" ? "active" : "")" asp-controller="Home" asp-action="Export">
+                <i class="fa-solid fa-file-export"></i> Export & Deploy
+            </a>
+        </nav>
+        
+        <div class="p-3" style="position: absolute; bottom: 0; width: 100%;">
+            <div class="card bg-dark border-0 p-3 text-center text-white" style="background-color: #12141c !important;">
+                <p class="mb-1 text-muted small">SQLite Database</p>
+                <p class="mb-0 text-success small font-monospace"><i class="fa-solid fa-database me-1"></i> Connected</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Layout -->
+    <div class="main-content d-flex flex-column">
+        <header class="d-flex justify-content-between align-items-center mb-5">
+            <div>
+                <h4 class="text-muted font-monospace small mb-1">BOURGES TOURISM ADMINISTRATION</h4>
+                <h2 class="fw-bold mb-0">@ViewData["Title"]</h2>
+            </div>
+            
+            <div class="d-flex align-items-center gap-3">
+                <span class="badge bg-light text-dark py-2 px-3 border border-secondary-subtle">
+                    <i class="fa-regular fa-clock me-1 text-primary"></i> 2026-07-11
+                </span>
+                <div class="dropdown">
+                    <button class="btn btn-white border border-secondary-subtle dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown">
+                        <span class="bg-primary rounded-circle text-white d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; font-size: 0.8rem; font-weight: 600;">
+                            AD
+                        </span>
+                        <span>Administrator</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item text-danger" href="#"><i class="fa-solid fa-lock me-2"></i> Lock Panel</a></li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <!-- Notification Alerts -->
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-circle-check fa-lg text-success"></i>
+                    <div>@TempData["SuccessMessage"]</div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-circle-exclamation fa-lg text-danger"></i>
+                    <div>@TempData["ErrorMessage"]</div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <main role="main" class="pb-3 flex-grow-1">
+            @RenderBody()
+        </main>
+
+        <footer class="footer mt-5">
+            <div class="container-fluid px-0">
+                <div class="row align-items-center">
+                    <div class="col-md-6 text-center text-md-start">
+                        <p class="mb-0">&copy; 2026 Bourges Guide CMS. Built with ASP.NET Core MVC & SQLite.</p>
+                    </div>
+                    <div class="col-md-6 text-center text-md-end text-muted">
+                        <p class="mb-0">Multi-lingual Audio-guide Admin Panel</p>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

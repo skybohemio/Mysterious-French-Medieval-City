@@ -1,0 +1,265 @@
+@model BourgesAdminBackend.Models.TourRoute
+@{
+    var isEdit = Model.Id != 0;
+    ViewData["Title"] = isEdit ? $"Edit Route: {Model.NameFr}" : "Design Tour Route";
+    var allSites = ViewBag.AllSites as List<BourgesAdminBackend.Models.Site> ?? new List<BourgesAdminBackend.Models.Site>();
+}
+
+<div class="card p-4 bg-white shadow-sm mb-5">
+    <div class="card-header d-flex justify-content-between align-items-center px-0 mb-4">
+        <h5 class="fw-bold mb-0">@ViewData["Title"]</h5>
+        <a asp-action="Index" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-arrow-left me-1"></i> Back to Routes</a>
+    </div>
+
+    <form asp-action="Save" method="post" class="needs-validation" novalidate id="routeForm">
+        <input type="hidden" asp-for="Id" />
+
+        <div class="row g-4">
+            <!-- Left Panel: Name, Color & Duration -->
+            <div class="col-lg-6">
+                <div class="card border border-light-subtle p-4 h-100">
+                    <h5 class="fw-bold mb-4 text-dark"><i class="fa-solid fa-file-signature text-primary me-2"></i> Route Identity</h5>
+                    
+                    <!-- FR (Main Localized Fields) -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-muted">ROUTE NAME (FR)</label>
+                        <input asp-for="NameFr" class="form-control" placeholder="Titre du parcours" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-muted">DESCRIPTION (FR)</label>
+                        <textarea asp-for="DescriptionFr" class="form-control" rows="3" placeholder="Description courte..." required></textarea>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold small text-muted">ROUTE THEME COLOR</label>
+                            <div class="input-group">
+                                <input asp-for="ColorHex" type="color" class="form-control form-control-color" style="max-width: 60px; height: 38px; padding: 4px;" required />
+                                <input id="colorTextInput" type="text" class="form-control font-monospace uppercase" placeholder="#HEX" value="@Model.ColorHex" oninput="document.getElementById('ColorHex').value = this.value" />
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold small text-muted">ESTIMATED DURATION (MINS)</label>
+                            <input asp-for="DurationMin" type="number" class="form-control" min="5" max="600" required />
+                        </div>
+                    </div>
+
+                    <!-- Translation fields collapsible -->
+                    <button class="btn btn-sm btn-light border border-secondary-subtle text-start w-100 py-2 d-flex justify-content-between align-items-center mb-4" type="button" data-bs-toggle="collapse" data-bs-target="#translationCollapse">
+                        <span class="fw-bold small text-secondary"><i class="fa-solid fa-language text-success me-1"></i> Manage Other Languages (EN, DE, ES, NL)</span>
+                        <i class="fa-solid fa-chevron-down text-muted"></i>
+                    </button>
+
+                    <div class="collapse" id="translationCollapse">
+                        <div class="p-3 bg-light rounded border border-light-subtle mb-3">
+                            <!-- EN -->
+                            <h6 class="fw-bold mb-2 text-primary small">ENGLISH (EN)</h6>
+                            <input asp-for="NameEn" class="form-control mb-2 form-control-sm" placeholder="Name in English" />
+                            <textarea asp-for="DescriptionEn" class="form-control mb-3 form-control-sm" rows="2" placeholder="Description in English"></textarea>
+
+                            <!-- DE -->
+                            <h6 class="fw-bold mb-2 text-info small">GERMAN (DE)</h6>
+                            <input asp-for="NameDe" class="form-control mb-2 form-control-sm" placeholder="Name auf Deutsch" />
+                            <textarea asp-for="DescriptionDe" class="form-control mb-3 form-control-sm" rows="2" placeholder="Beschreibung auf Deutsch"></textarea>
+
+                            <!-- ES -->
+                            <h6 class="fw-bold mb-2 text-warning small">SPANISH (ES)</h6>
+                            <input asp-for="NameEs" class="form-control mb-2 form-control-sm" placeholder="Nombre en español" />
+                            <textarea asp-for="DescriptionEs" class="form-control mb-3 form-control-sm" rows="2" placeholder="Descripción en español"></textarea>
+
+                            <!-- NL -->
+                            <h6 class="fw-bold mb-2 text-purple small">DUTCH (NL)</h6>
+                            <input asp-for="NameNl" class="form-control mb-2 form-control-sm" placeholder="Naam in het Nederlands" />
+                            <textarea asp-for="DescriptionNl" class="form-control form-control-sm" rows="2" placeholder="Beschrijving in het Nederlands"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Draggable/Interactive Stops Builder -->
+            <div class="col-lg-6">
+                <div class="card border border-light-subtle p-4 h-100">
+                    <h5 class="fw-bold mb-1 text-dark"><i class="fa-solid fa-map-pin text-danger me-2"></i> Tour Stops Builder</h5>
+                    <p class="text-muted small mb-4">Define which landmarks belong to this route and their exact order by clicking landmarks in the available catalog list below.</p>
+
+                    <!-- Hidden actual list input -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold small text-muted">ORDERED SITE IDs VALUE</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-0 font-monospace">[id]</span>
+                            <input asp-for="SiteIdsString" class="form-control font-monospace border-secondary-subtle" readonly required />
+                        </div>
+                    </div>
+
+                    <!-- Visual Interactive builder row -->
+                    <div class="row g-3">
+                        <!-- Left: Available Sites Catalog -->
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded border border-light-subtle">
+                                <h6 class="fw-bold mb-3 small text-secondary">Available Landmarks</h6>
+                                <div class="d-flex flex-column gap-2" style="max-height: 280px; overflow-y: auto;">
+                                    @foreach (var site in allSites)
+                                    {
+                                        <div class="p-2 bg-white rounded border border-light-subtle d-flex justify-content-between align-items-center gap-1 shadow-sm">
+                                            <div class="text-truncate">
+                                                <span class="badge bg-secondary small mb-1">#@site.Id</span>
+                                                <span class="d-block text-dark fw-semibold small text-truncate" title="@site.Title">@site.Title</span>
+                                            </div>
+                                            <button type="button" class="btn btn-sm btn-primary py-1 px-2" onclick="addStop(@site.Id, '@site.Title.Replace("'", "\\'")')">
+                                                <i class="fa-solid fa-plus"></i>
+                                            </button>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right: Active Timeline -->
+                        <div class="col-md-6">
+                            <div class="p-3 bg-white rounded border border-secondary-subtle h-100 d-flex flex-column" style="min-height: 250px;">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="fw-bold mb-0 small text-dark">Active Stops Timeline</h6>
+                                    <button type="button" class="btn btn-xs btn-link text-danger p-0 text-decoration-none small" onclick="clearStops()"><i class="fa-solid fa-trash-can me-1"></i> Clear</button>
+                                </div>
+                                <div id="timelineContainer" class="ps-3 border-start border-secondary-subtle ms-2 d-flex flex-column gap-2 overflow-y-auto flex-grow-1" style="max-height: 240px;">
+                                    <!-- Populated by JavaScript -->
+                                    <p id="emptyTimelineText" class="text-muted small text-center my-auto">No stops added yet.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-5 d-flex gap-2 justify-content-end">
+            <a asp-action="Index" class="btn btn-lg btn-light border px-4">Cancel</a>
+            <button type="submit" class="btn btn-lg btn-primary px-5" id="saveBtn"><i class="fa-solid fa-circle-check me-2"></i> Save Route</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        // Set hex input on color picker change
+        var colorPicker = document.getElementById('ColorHex');
+        var colorText = document.getElementById('colorTextInput');
+        colorPicker.addEventListener('input', function() {
+            colorText.value = colorPicker.value.toUpperCase();
+        });
+
+        // Initialize active stops dictionary to populate names
+        var sitesDict = {
+            @foreach (var site in allSites)
+            {
+                @:@site.Id: "@Html.Raw(site.Title.Replace("\"", "\\\""))",
+            }
+        };
+
+        var activeStops = [];
+
+        // Load existing stops on edit
+        try {
+            var rawValue = document.getElementById('SiteIdsString').value;
+            if (rawValue && rawValue.trim().startsWith("[")) {
+                activeStops = JSON.parse(rawValue);
+            } else if (rawValue) {
+                activeStops = rawValue.split(',').map(Number).filter(n => !isNaN(n) && n > 0);
+            }
+        } catch (e) {
+            console.error("Error parsing existing site IDs", e);
+        }
+
+        renderTimeline();
+
+        function addStop(id, title) {
+            activeStops.push(id);
+            updateSiteIdsString();
+            renderTimeline();
+        }
+
+        function clearStops() {
+            activeStops = [];
+            updateSiteIdsString();
+            renderTimeline();
+        }
+
+        function removeStopAt(index) {
+            activeStops.splice(index, 1);
+            updateSiteIdsString();
+            renderTimeline();
+        }
+
+        function updateSiteIdsString() {
+            document.getElementById('SiteIdsString').value = JSON.stringify(activeStops);
+        }
+
+        function renderTimeline() {
+            var container = document.getElementById('timelineContainer');
+            var emptyText = document.getElementById('emptyTimelineText');
+
+            // Clear visual stops (excluding empty notification text if needed)
+            container.innerHTML = "";
+
+            if (activeStops.length === 0) {
+                container.appendChild(emptyText);
+                emptyText.style.display = "block";
+                return;
+            }
+
+            activeStops.forEach((id, index) => {
+                var title = sitesDict[id] || "Unknown Landmark #" + id;
+                var stopDiv = document.createElement('div');
+                stopDiv.className = "position-relative pb-2 d-flex align-items-center justify-content-between";
+                stopDiv.innerHTML = `
+                    <span class="position-absolute bg-white border border-secondary rounded-circle text-center fw-bold text-dark" style="width: 18px; height: 18px; left: -24px; top: 4px; font-size: 0.7rem; line-height: 16px; z-index: 5;">
+                        ${index + 1}
+                    </span>
+                    <span class="ps-2 fw-semibold text-secondary text-truncate small" style="max-width: 150px;">${title}</span>
+                    <button type="button" class="btn btn-xs btn-outline-danger p-1 rounded-circle border-0" onclick="removeStopAt(${index})" style="line-height: 10px;">
+                        <i class="fa-solid fa-xmark" style="font-size: 0.75rem;"></i>
+                    </button>
+                `;
+                container.appendChild(stopDiv);
+            });
+        }
+
+        // Automatic mapping of default translation values if empty on submit
+        document.getElementById('routeForm').addEventListener('submit', function(e) {
+            var nameFr = document.getElementById('NameFr').value;
+            var descFr = document.getElementById('DescriptionFr').value;
+
+            // EN fallbacks
+            if (!document.getElementById('NameEn').value) document.getElementById('NameEn').value = nameFr;
+            if (!document.getElementById('DescriptionEn').value) document.getElementById('DescriptionEn').value = descFr;
+
+            // DE fallbacks
+            if (!document.getElementById('NameDe').value) document.getElementById('NameDe').value = nameFr;
+            if (!document.getElementById('DescriptionDe').value) document.getElementById('DescriptionDe').value = descFr;
+
+            // ES fallbacks
+            if (!document.getElementById('NameEs').value) document.getElementById('NameEs').value = nameFr;
+            if (!document.getElementById('DescriptionEs').value) document.getElementById('DescriptionEs').value = descFr;
+
+            // NL fallbacks
+            if (!document.getElementById('NameNl').value) document.getElementById('NameNl').value = nameFr;
+            if (!document.getElementById('DescriptionNl').value) document.getElementById('DescriptionNl').value = descFr;
+        });
+
+        // Bootstrap Client-side validation
+        (function () {
+            'use strict'
+            var forms = document.querySelectorAll('.needs-validation')
+            Array.prototype.slice.call(forms)
+                .forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault()
+                            event.stopPropagation()
+                        }
+                        form.classList.add('was-validated')
+                    }, false)
+                })
+        })()
+    </script>
+}

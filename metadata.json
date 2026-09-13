@@ -1,0 +1,6 @@
+{
+  "name": "Les Mystères de Bourges à vos oreilles",
+  "description": "Explorez les secrets, légendes et mystères de Bourges avec une carte interactive OpenStreetMap occupant 80% de l'écran et un audioguide immersif.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

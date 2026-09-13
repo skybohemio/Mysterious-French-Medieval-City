@@ -1,0 +1,136 @@
+@model IEnumerable<BourgesAdminBackend.Models.Site>
+@{
+    ViewData["Title"] = "Points of Interest";
+}
+
+<!-- Filters & Create Actions -->
+<div class="card p-4 bg-white mb-4 shadow-sm">
+    <form method="get" asp-controller="Sites" asp-action="Index" class="row g-3">
+        <div class="col-md-5">
+            <div class="input-group">
+                <span class="input-group-text bg-light border-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                <input type="text" name="search" value="@ViewBag.Search" class="form-control bg-light border-0" placeholder="Search by name, title, description..." />
+            </div>
+        </div>
+        <div class="col-md-3">
+            <select name="category" class="form-select bg-light border-0">
+                <option value="ALL">All Categories</option>
+                <!option value="CATHEDRAL" @(ViewBag.Category == "CATHEDRAL" ? "selected" : "")>CATHEDRAL</!option>
+                <!option value="PALACE" @(ViewBag.Category == "PALACE" ? "selected" : "")>PALACE</!option>
+                <!option value="NATURE" @(ViewBag.Category == "NATURE" ? "selected" : "")>NATURE</!option>
+                <!option value="MUSEUM" @(ViewBag.Category == "MUSEUM" ? "selected" : "")>MUSEUM</!option>
+                <!option value="CUSTOM" @(ViewBag.Category == "CUSTOM" ? "selected" : "")>CUSTOM</!option>
+            </select>
+        </div>
+        <div class="col-md-4 d-flex gap-2 justify-content-md-end">
+            <button type="submit" class="btn btn-dark px-4"><i class="fa-solid fa-filter me-2"></i> Filter</button>
+            <a asp-action="Index" class="btn btn-outline-secondary"><i class="fa-solid fa-rotate-left"></i> Reset</a>
+            <a asp-action="Create" class="btn btn-primary px-4"><i class="fa-solid fa-plus-circle me-2"></i> Add Site</a>
+        </div>
+    </form>
+</div>
+
+<!-- Main Table Card -->
+<div class="card bg-white shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="fw-bold mb-0">Registered Points of Interest</h5>
+        <span class="badge bg-light text-dark border border-secondary-subtle font-monospace py-2 px-3">Total Registered: @Model.Count()</span>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-4" style="width: 80px;">ID</th>
+                    <th>Default Title</th>
+                    <th>Translations Available</th>
+                    <th>Category</th>
+                    <th>Coordinates</th>
+                    <th>Type</th>
+                    <th>Audio (Sec)</th>
+                    <th class="pe-4 text-end" style="width: 150px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="8" class="text-center py-5 text-muted">
+                            <i class="fa-solid fa-folder-open fa-3x mb-3 text-muted"></i>
+                            <p class="mb-0">No points of interest match the selected filters.</p>
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="ps-4 fw-bold text-secondary">#@item.Id</td>
+                            <td>
+                                <div class="fw-bold fs-6 text-dark">@item.Title</div>
+                                <div class="text-muted small text-truncate" style="max-width: 300px;">@item.Description</div>
+                            </td>
+                            <td>
+                                <div class="d-flex gap-1 flex-wrap">
+                                    <span class="badge @(string.IsNullOrEmpty(item.TitleFr) ? "bg-light text-muted border" : "bg-primary-subtle text-primary") px-2" title="@item.TitleFr">FR</span>
+                                    <span class="badge @(string.IsNullOrEmpty(item.TitleEn) ? "bg-light text-muted border" : "bg-success-subtle text-success") px-2" title="@item.TitleEn">EN</span>
+                                    <span class="badge @(string.IsNullOrEmpty(item.TitleDe) ? "bg-light text-muted border" : "bg-info-subtle text-info") px-2" title="@item.TitleDe">DE</span>
+                                    <span class="badge @(string.IsNullOrEmpty(item.TitleEs) ? "bg-light text-muted border" : "bg-warning-subtle text-warning") px-2" title="@item.TitleEs">ES</span>
+                                    <span class="badge @(string.IsNullOrEmpty(item.TitleNl) ? "bg-light text-muted border" : "bg-purple-subtle text-purple") px-2" title="@item.TitleNl">NL</span>
+                                </div>
+                            </td>
+                            <td>
+                                @{
+                                    var badgeClass = item.Category switch
+                                    {
+                                        "CATHEDRAL" => "badge-cathedral",
+                                        "PALACE" => "badge-palace",
+                                        "NATURE" => "badge-nature",
+                                        "MUSEUM" => "badge-museum",
+                                        _ => "badge-custom"
+                                    };
+                                }
+                                <span class="badge @badgeClass rounded-pill py-1.5 px-3 font-monospace" style="font-size: 0.75rem;">@item.Category</span>
+                            </td>
+                            <td>
+                                <div class="font-monospace small mb-1"><i class="fa-solid fa-location-dot text-danger me-1"></i> @item.Latitude.ToString("F5")</div>
+                                <div class="font-monospace small text-muted"><i class="fa-solid fa-location-dot text-secondary me-1"></i> @item.Longitude.ToString("F5")</div>
+                            </td>
+                            <td>
+                                @if (item.IsPreset)
+                                {
+                                    <span class="badge bg-success-subtle text-success py-1 px-2 rounded-2 small"><i class="fa-solid fa-lock me-1"></i> Core Heritage</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary-subtle text-secondary py-1 px-2 rounded-2 small"><i class="fa-solid fa-user-pen me-1"></i> Custom Landmark</span>
+                                }
+                            </td>
+                            <td>
+                                <span class="fw-semibold text-secondary"><i class="fa-solid fa-volume-high me-1 text-muted"></i> @item.AudioDurationSec s</span>
+                            </td>
+                            <td class="pe-4 text-end">
+                                <div class="btn-group shadow-sm rounded-3">
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-white border-secondary-subtle px-3" title="Edit Site Details">
+                                        <i class="fa-solid fa-pen-to-square text-primary"></i> Edit
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-white border-secondary-subtle px-2 text-danger" title="Delete Point of Interest">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .bg-purple-subtle {
+        background-color: #f3ebff;
+        color: #6b46c1;
+    }
+</style>

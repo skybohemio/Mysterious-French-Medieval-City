@@ -1,0 +1,231 @@
+@model BourgesAdminBackend.Models.Site
+@{
+    var isEdit = Model.Id != 0;
+    ViewData["Title"] = isEdit ? $"Edit Site: {Model.Title}" : "Register Point of Interest";
+}
+
+<div class="card p-4 bg-white shadow-sm mb-5">
+    <div class="card-header d-flex justify-content-between align-items-center px-0 mb-4">
+        <h5 class="fw-bold mb-0">@ViewData["Title"]</h5>
+        <a asp-action="Index" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-arrow-left me-1"></i> Back to List</a>
+    </div>
+
+    <form asp-action="Save" method="post" class="needs-validation" novalidate>
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="IsPreset" />
+
+        <div class="row g-4">
+            <!-- Left Side: Core Properties & Coordinates -->
+            <div class="col-lg-5">
+                <div class="card bg-light border-0 p-4 h-100">
+                    <h5 class="fw-bold mb-4 text-dark"><i class="fa-solid fa-gear text-primary me-2"></i> System Properties</h5>
+                    
+                    <!-- Title -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-muted">DEFAULT / ADMIN TITLE</label>
+                        <input asp-for="Title" class="form-control border-secondary-subtle" placeholder="e.g. Cathédrale Saint-Étienne" required />
+                        <span asp-validation-for="Title" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Category -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-muted">HERITAGE CATEGORY</label>
+                        <select asp-for="Category" class="form-select border-secondary-subtle">
+                            <option value="CATHEDRAL">CATHEDRAL - Religious Monuments</option>
+                            <option value="PALACE">PALACE - Royal & Historic Mansions</option>
+                            <option value="NATURE">NATURE - Parks, Marshes & Natural Places</option>
+                            <option value="MUSEUM">MUSEUM - Historical & Art Museums</option>
+                            <option value="CUSTOM">CUSTOM - Landmarks & Tourist Shops</option>
+                        </select>
+                    </div>
+
+                    <!-- Audio Duration -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold small text-muted">AUDIO NARRATION DURATION (SECONDS)</label>
+                        <input asp-for="AudioDurationSec" type="number" class="form-control border-secondary-subtle" min="5" max="600" required />
+                        <span asp-validation-for="AudioDurationSec" class="text-danger small"></span>
+                    </div>
+
+                    <h5 class="fw-bold mb-3 mt-2 text-dark"><i class="fa-solid fa-map-location-dot text-danger me-2"></i> GPS Mapping Coordinates</h5>
+                    
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-muted">LATITUDE</label>
+                            <input asp-for="Latitude" type="number" step="0.000001" class="form-control border-secondary-subtle" placeholder="e.g. 47.0822" required />
+                            <span asp-validation-for="Latitude" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-muted">LONGITUDE</label>
+                            <input asp-for="Longitude" type="number" step="0.000001" class="form-control border-secondary-subtle" placeholder="e.g. 2.4012" required />
+                            <span asp-validation-for="Longitude" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="p-3 bg-white rounded border border-light-subtle">
+                        <p class="mb-0 text-muted small"><i class="fa-solid fa-circle-exclamation text-primary me-1"></i> Check coordinates carefully using Google Maps to ensure correct location markers inside the mobile app simulator.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Descriptive Content & Multilingual Translation tabs -->
+            <div class="col-lg-7">
+                <div class="card border border-light-subtle p-4 h-100">
+                    <h5 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-language text-success me-2"></i> Multi-lingual Translation Hub</h5>
+                    <p class="text-muted small mb-4">Provide descriptions and narrations in all supported languages to populate the mobile audio-guide. Click a tab to translate fields.</p>
+
+                    <!-- Language Tabs -->
+                    <ul class="nav nav-pills mb-4 gap-2" id="langTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active px-3" id="fr-tab" data-bs-toggle="tab" data-bs-target="#tab-fr" type="button" role="tab"><span class="fw-bold">FR</span> French</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link px-3" id="en-tab" data-bs-toggle="tab" data-bs-target="#tab-en" type="button" role="tab"><span class="fw-bold">EN</span> English</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link px-3" id="de-tab" data-bs-toggle="tab" data-bs-target="#tab-de" type="button" role="tab"><span class="fw-bold">DE</span> German</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link px-3" id="es-tab" data-bs-toggle="tab" data-bs-target="#tab-es" type="button" role="tab"><span class="fw-bold">ES</span> Spanish</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link px-3" id="nl-tab" data-bs-toggle="tab" data-bs-target="#tab-nl" type="button" role="tab"><span class="fw-bold">NL</span> Dutch</button>
+                        </li>
+                    </ul>
+
+                    <!-- Tab Content -->
+                    <div class="tab-content" id="langTabsContent">
+                        
+                        <!-- FRENCH (FR) -->
+                        <div class="tab-pane fade show active" id="tab-fr" role="tabpanel">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold small text-muted">TITLE (FR)</label>
+                                <input asp-for="TitleFr" class="form-control" placeholder="Titre en français" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold small text-muted">DESCRIPTION (FR)</label>
+                                <textarea asp-for="DescriptionFr" class="form-control" rows="3" placeholder="Description courte de l'édifice..."></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold small text-muted">AUDIO NARRATION (FR)</label>
+                                <textarea asp-for="NarrationFr" class="form-control" rows="4" placeholder="Texte lu à haute voix lors de l'écoute audio..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- ENGLISH (EN) -->
+                        <div class="tab-pane fade" id="tab-en" role="tabpanel">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold small text-muted">TITLE (EN)</label>
+                                <input asp-for="TitleEn" class="form-control" placeholder="Title in English" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold small text-muted">DESCRIPTION (EN)</label>
+                                <textarea asp-for="DescriptionEn" class="form-control" rows="3" placeholder="Short description of the site..."></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold small text-muted">AUDIO NARRATION (EN)</label>
+                                <textarea asp-for="NarrationEn" class="form-control" rows="4" placeholder="Spoken audio narration script..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- GERMAN (DE) -->
+                        <div class="tab-pane fade" id="tab-de" role="tabpanel">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold small text-muted">TITLE (DE)</label>
+                                <input asp-for="TitleDe" class="form-control" placeholder="Titel auf Deutsch" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold small text-muted">DESCRIPTION (DE)</label>
+                                <textarea asp-for="DescriptionDe" class="form-control" rows="3" placeholder="Kurzbeschreibung der Sehenswürdigkeit..."></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold small text-muted">AUDIO NARRATION (DE)</label>
+                                <textarea asp-for="NarrationDe" class="form-control" rows="4" placeholder="Gesprochener Audio-Skript..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- SPANISH (ES) -->
+                        <div class="tab-pane fade" id="tab-es" role="tabpanel">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold small text-muted">TITLE (ES)</label>
+                                <input asp-for="TitleEs" class="form-control" placeholder="Título en español" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold small text-muted">DESCRIPTION (ES)</label>
+                                <textarea asp-for="DescriptionEs" class="form-control" rows="3" placeholder="Breve descripción del punto de interés..."></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold small text-muted">AUDIO NARRATION (ES)</label>
+                                <textarea asp-for="NarrationEs" class="form-control" rows="4" placeholder="Texto de narración locutada en audio..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- DUTCH (NL) -->
+                        <div class="tab-pane fade" id="tab-nl" role="tabpanel">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold small text-muted">TITLE (NL)</label>
+                                <input asp-for="TitleNl" class="form-control" placeholder="Titel in het Nederlands" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold small text-muted">DESCRIPTION (NL)</label>
+                                <textarea asp-for="DescriptionNl" class="form-control" rows="3" placeholder="Korte beschrijving van de bezienswaardigheid..."></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold small text-muted">AUDIO NARRATION (NL)</label>
+                                <textarea asp-for="NarrationNl" class="form-control" rows="4" placeholder="Ingeesproken audionarratietekst..."></textarea>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Hidden fields supporting raw fallbacks if UI is incomplete -->
+                    <div class="mt-4 border-top pt-3 d-none">
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label fw-semibold small text-muted">Fallback Description</label>
+                            <textarea asp-for="Description" class="form-control" rows="2"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="NarrationText" class="form-label fw-semibold small text-muted">Fallback Narration</label>
+                            <textarea asp-for="NarrationText" class="form-control" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-5 d-flex gap-2 justify-content-end">
+            <a asp-action="Index" class="btn btn-lg btn-light border px-4">Cancel</a>
+            <button type="submit" class="btn btn-lg btn-primary px-5" id="saveBtn"><i class="fa-solid fa-cloud-arrow-up me-2"></i> Save Site</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        // Automatic form synchronization so if fallbacks are hidden, we copy values from FR fields
+        document.getElementById('saveBtn').addEventListener('click', function() {
+            var title = document.getElementById('Title').value;
+            var descFr = document.getElementById('DescriptionFr').value;
+            var narrFr = document.getElementById('NarrationFr').value;
+
+            // Map default non-localized fields to FR fields if they are blank
+            document.getElementById('Description').value = descFr;
+            document.getElementById('NarrationText').value = narrFr;
+        });
+
+        // Bootstrap Client-side validation
+        (function () {
+            'use strict'
+            var forms = document.querySelectorAll('.needs-validation')
+            Array.prototype.slice.call(forms)
+                .forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault()
+                            event.stopPropagation()
+                        }
+                        form.classList.add('was-validated')
+                    }, false)
+                })
+        })()
+    </script>
+}

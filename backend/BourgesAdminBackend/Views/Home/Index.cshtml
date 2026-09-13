@@ -1,0 +1,259 @@
+@model IEnumerable<BourgesAdminBackend.Models.Site>
+@{
+    ViewData["Title"] = "Dashboard Overview";
+    var categoryCounts = ViewBag.CategoryCounts as Dictionary<string, int> ?? new Dictionary<string, int>();
+}
+
+<!-- Dashboard Stats Widgets -->
+<div class="row g-4 mb-5">
+    <div class="col-md-3">
+        <div class="card p-4 h-100 bg-white">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="text-muted small fw-semibold">TOTAL SITES</span>
+                <span class="bg-primary-subtle text-primary p-2 rounded-3">
+                    <i class="fa-solid fa-map-pin fa-lg"></i>
+                </span>
+            </div>
+            <h2 class="fw-bold mb-1">@ViewBag.TotalSites</h2>
+            <p class="text-muted small mb-0">Sites registered in database</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-4 h-100 bg-white">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="text-muted small fw-semibold">TOUR ROUTES</span>
+                <span class="bg-success-subtle text-success p-2 rounded-3">
+                    <i class="fa-solid fa-route fa-lg"></i>
+                </span>
+            </div>
+            <h2 class="fw-bold mb-1">@ViewBag.TotalRoutes</h2>
+            <p class="text-muted small mb-0">Pre-defined guided paths</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-4 h-100 bg-white">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="text-muted small fw-semibold">PRESET SITES</span>
+                <span class="bg-info-subtle text-info p-2 rounded-3">
+                    <i class="fa-solid fa-building-columns fa-lg"></i>
+                </span>
+            </div>
+            <h2 class="fw-bold mb-1">@ViewBag.PresetCount</h2>
+            <p class="text-muted small mb-0">Locked core heritage sites</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-4 h-100 bg-white">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="text-muted small fw-semibold">CUSTOM SITES</span>
+                <span class="bg-warning-subtle text-warning p-2 rounded-3">
+                    <i class="fa-solid fa-map-location fa-lg"></i>
+                </span>
+            </div>
+            <h2 class="fw-bold mb-1">@ViewBag.CustomCount</h2>
+            <p class="text-muted small mb-0">User/Admin customized sites</p>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Category & Map Analytics column -->
+    <div class="col-lg-4">
+        <div class="card h-100 mb-4 bg-white">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0">Sites by Category</h5>
+                <i class="fa-solid fa-chart-bar text-muted"></i>
+            </div>
+            <div class="card-body p-4">
+                <div class="d-flex flex-column gap-3">
+                    @{
+                        string[] categories = { "CATHEDRAL", "PALACE", "NATURE", "MUSEUM", "CUSTOM" };
+                        string[] colors = { "bg-warning", "bg-danger", "bg-success", "bg-purple", "bg-secondary" };
+                        int idx = 0;
+                        foreach (var cat in categories)
+                        {
+                            int count = categoryCounts.ContainsKey(cat) ? categoryCounts[cat] : 0;
+                            double percent = ViewBag.TotalSites > 0 ? (double)count / ViewBag.TotalSites * 100 : 0;
+                            string colorClass = colors[idx % colors.Length];
+                            idx++;
+
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="fw-semibold small">@cat</span>
+                                    <span class="text-muted small">@count sites (@percent.ToString("F0")%)</span>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar @colorClass" role="progressbar" style="width: @percent%"></div>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick action links -->
+    <div class="col-lg-8">
+        <div class="card h-100 bg-white">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0">Quick Administrator Tools</h5>
+                <i class="fa-solid fa-toolbox text-muted"></i>
+            </div>
+            <div class="card-body p-4">
+                <p class="text-muted mb-4">Select an administrative action below to start managing the audio guide content or export databases for mobile application updates.</p>
+                
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <a asp-controller="Sites" asp-action="Create" class="card border border-light-subtle p-3 h-100 text-decoration-none bg-light-hover">
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="bg-primary text-white p-3 rounded-3">
+                                    <i class="fa-solid fa-plus-circle fa-xl"></i>
+                                </span>
+                                <div>
+                                    <h6 class="fw-bold text-dark mb-1">Add Point of Interest</h6>
+                                    <p class="text-muted small mb-0">Register a new heritage or tourist site in Bourges.</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <a asp-controller="Routes" asp-action="Create" class="card border border-light-subtle p-3 h-100 text-decoration-none bg-light-hover">
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="bg-success text-white p-3 rounded-3">
+                                    <i class="fa-solid fa-route fa-xl"></i>
+                                </span>
+                                <div>
+                                    <h6 class="fw-bold text-dark mb-1">Create Tour Route</h6>
+                                    <p class="text-muted small mb-0">Design a customized ordered path for tour guides.</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="col-md-6">
+                        <a asp-controller="Home" asp-action="Export" class="card border border-light-subtle p-3 h-100 text-decoration-none bg-light-hover">
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="bg-info text-white p-3 rounded-3">
+                                    <i class="fa-solid fa-file-export fa-xl"></i>
+                                </span>
+                                <div>
+                                    <h6 class="fw-bold text-dark mb-1">Export Database</h6>
+                                    <p class="text-muted small mb-0">Download SQLite, SQL script, or JSON files.</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="col-md-6">
+                        <a asp-controller="Sites" asp-action="Index" class="card border border-light-subtle p-3 h-100 text-decoration-none bg-light-hover">
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="bg-secondary text-white p-3 rounded-3">
+                                    <i class="fa-solid fa-magnifying-glass fa-xl"></i>
+                                </span>
+                                <div>
+                                    <h6 class="fw-bold text-dark mb-1">Search & Audit</h6>
+                                    <p class="text-muted small mb-0">Search, review coordinates, and check translations.</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recently Registered Points of Interest Table -->
+<div class="card mt-5 bg-white">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="fw-bold mb-0">Recently Modified Points of Interest</h5>
+        <a asp-controller="Sites" asp-action="Index" class="btn btn-sm btn-link text-primary fw-semibold text-decoration-none">View All Sites</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-4">Site ID</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Coordinates</th>
+                    <th>Preset</th>
+                    <th>Voice Duration</th>
+                    <th class="pe-4 text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="7" class="text-center py-4 text-muted">No sites registered yet.</td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="ps-4 fw-semibold">#@item.Id</td>
+                            <td>
+                                <span class="fw-bold">@item.Title</span>
+                                <span class="text-muted d-block small">@item.TitleEn</span>
+                            </td>
+                            <td>
+                                @{
+                                    var badgeClass = item.Category switch
+                                    {
+                                        "CATHEDRAL" => "badge-cathedral",
+                                        "PALACE" => "badge-palace",
+                                        "NATURE" => "badge-nature",
+                                        "MUSEUM" => "badge-museum",
+                                        _ => "badge-custom"
+                                    };
+                                }
+                                <span class="badge @badgeClass rounded-pill py-1.5 px-3">@item.Category</span>
+                            </td>
+                            <td>
+                                <span class="font-monospace small text-muted">@item.Latitude.ToString("F4"), @item.Longitude.ToString("F4")</span>
+                            </td>
+                            <td>
+                                @if (item.IsPreset)
+                                {
+                                    <span class="badge bg-success-subtle text-success py-1 px-2.5 rounded"><i class="fa-solid fa-circle-check me-1"></i> Core</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary-subtle text-secondary py-1 px-2.5 rounded"><i class="fa-solid fa-user-pen me-1"></i> Custom</span>
+                                }
+                            </td>
+                            <td>
+                                <span class="fw-semibold">@item.AudioDurationSec s</span>
+                            </td>
+                            <td class="pe-4 text-end">
+                                <a asp-controller="Sites" asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-white border border-secondary-subtle px-2" title="Edit Site">
+                                    <i class="fa-solid fa-pen-to-square text-primary"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .bg-light-hover {
+        transition: all 0.2s;
+    }
+    .bg-light-hover:hover {
+        background-color: #f8f9fa !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
+    }
+    .bg-purple {
+        background-color: #805ad5;
+        color: white;
+    }
+</style>

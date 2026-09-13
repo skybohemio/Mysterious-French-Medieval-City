@@ -1,0 +1,37 @@
+@model BourgesAdminBackend.Models.Site
+@{
+    ViewData["Title"] = $"Delete Site: {Model.Title}";
+}
+
+<div class="card p-4 bg-white shadow-sm max-width-md mx-auto my-5" style="max-width: 600px;">
+    <div class="text-center mb-4">
+        <span class="bg-danger-subtle text-danger p-4 rounded-circle d-inline-block mb-3">
+            <i class="fa-solid fa-triangle-exclamation fa-2x"></i>
+        </span>
+        <h3 class="fw-bold text-dark">Are you absolutely sure?</h3>
+        <p class="text-muted">You are about to delete <strong>@Model.Title</strong> from the Bourges tourist catalog.</p>
+    </div>
+
+    <div class="bg-light p-3 rounded mb-4 border border-light-subtle">
+        <div class="row g-2 mb-2">
+            <div class="col-4 text-muted small fw-bold">SITE ID</div>
+            <div class="col-8 small font-monospace">#@Model.Id</div>
+        </div>
+        <div class="row g-2 mb-2">
+            <div class="col-4 text-muted small fw-bold">CATEGORY</div>
+            <div class="col-8"><span class="badge bg-secondary">@Model.Category</span></div>
+        </div>
+        <div class="row g-2">
+            <div class="col-4 text-muted small fw-bold">COORDINATES</div>
+            <div class="col-8 small font-monospace">@Model.Latitude.ToString("F5"), @Model.Longitude.ToString("F5")</div>
+        </div>
+    </div>
+
+    <p class="text-danger small text-center mb-4"><i class="fa-solid fa-circle-info me-1"></i> Warning: This action is permanent and will remove this point of interest from any tour routes that reference its ID.</p>
+
+    <form asp-action="Delete" method="post" class="d-flex gap-2">
+        <input type="hidden" asp-for="Id" />
+        <a asp-action="Index" class="btn btn-light border w-50 py-2.5">Cancel</a>
+        <button type="submit" class="btn btn-danger w-50 py-2.5"><i class="fa-solid fa-trash-can me-2"></i> Permanently Delete</button>
+    </form>
+</div>

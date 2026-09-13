@@ -1,0 +1,78 @@
+@{
+    ViewData["Title"] = "Database Export & Mobile Sync";
+}
+
+<div class="row g-4">
+    <!-- Main Description -->
+    <div class="col-lg-8">
+        <div class="card p-4 bg-white mb-4">
+            <h4 class="fw-bold mb-3"><i class="fa-solid fa-server text-primary me-2"></i> Syncing Mobile App with CMS Changes</h4>
+            <p class="text-muted">Since the Bourges guide mobile application operates with an offline local database (SQLite with Room Database), any modifications made in this administrative panel (like adding new historical landmarks, correcting translations, or restructuring walking tour routes) must be synchronized into the app's local database.</p>
+            <p class="text-muted">Below are three different options to easily synchronize or update your mobile application database. Choose the method that best matches your deployment toolchain.</p>
+        </div>
+
+        <div class="row g-4">
+            <!-- Option 1: SQL Script -->
+            <div class="col-md-6">
+                <div class="card p-4 bg-white h-100 d-flex flex-column">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <span class="badge bg-primary-subtle text-primary py-1 px-2 rounded-2">Option A</span>
+                        <i class="fa-solid fa-terminal text-primary fa-lg"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Generate SQL Script</h5>
+                    <p class="text-muted small mb-4 flex-grow-1">Download raw SQL insertion statements representing all existing records. This is perfect for executing direct database scripts inside Android Room migration schemas or regenerating initial assets.</p>
+                    <a href="/api/export/sql" class="btn btn-primary w-100 py-2">
+                        <i class="fa-solid fa-file-code me-2"></i> Download SQL Script
+                    </a>
+                </div>
+            </div>
+
+            <!-- Option 2: JSON Format -->
+            <div class="col-md-6">
+                <div class="card p-4 bg-white h-100 d-flex flex-column">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <span class="badge bg-success-subtle text-success py-1 px-2 rounded-2">Option B</span>
+                        <i class="fa-solid fa-file-code text-success fa-lg"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Export Consolidated JSON</h5>
+                    <p class="text-muted small mb-4 flex-grow-1">Generates a highly structured multi-lingual JSON data file mapping all registered Points of Interest (with translations) and Tour Routes. This matches our web synchronization and REST specifications.</p>
+                    <a href="/api/export/json" class="btn btn-success text-white w-100 py-2">
+                        <i class="fa-solid fa-download me-2"></i> Download JSON File
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Sidebar stats and instructions -->
+    <div class="col-lg-4">
+        <div class="card p-4 bg-white h-100">
+            <h5 class="fw-bold mb-3"><i class="fa-solid fa-circle-info text-info me-2"></i> Live Schema Diagnostics</h5>
+            <hr class="text-muted" />
+
+            <div class="mb-4">
+                <label class="text-muted small fw-bold d-block mb-1">TOTAL EXPORT SIZE</label>
+                <span class="badge bg-light text-dark border p-2">
+                    <i class="fa-solid fa-database text-secondary me-1"></i> @ViewBag.SitesCount Sites, @ViewBag.RoutesCount Routes
+                </span>
+            </div>
+
+            <h6 class="fw-bold mb-2">Deployment Steps:</h6>
+            <ol class="text-muted small ps-3 mb-4">
+                <li class="mb-2">Click <strong>Download SQL Script</strong> to generate the statements.</li>
+                <li class="mb-2">Copy the script commands and execute them inside your mobile development database tool (e.g. DB Browser for SQLite).</li>
+                <li class="mb-2">Rebuild the APK in Google AI Studio; the compiled application will automatically integrate the modified static database as its fresh preset standard!</li>
+            </ol>
+
+            <div class="bg-light p-3 rounded border border-light-subtle text-center">
+                <span class="text-muted small d-block mb-2">API LIVE SYNC HOST</span>
+                <span class="badge bg-dark text-success font-monospace p-2 w-100">
+                    /api/sites
+                </span>
+                <span class="badge bg-dark text-success font-monospace p-2 w-100 mt-1">
+                    /api/routes
+                </span>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,107 @@
+@model IEnumerable<BourgesAdminBackend.Models.TourRoute>
+@{
+    ViewData["Title"] = "Guided Tour Routes";
+    var sitesDict = ViewBag.SitesDict as Dictionary<int, string> ?? new Dictionary<int, string>();
+}
+
+<!-- Header info & create trigger -->
+<div class="card p-4 bg-white mb-4 d-flex flex-sm-row justify-content-between align-items-center shadow-sm">
+    <div>
+        <h5 class="fw-bold mb-1">Walking Tour Route Registry</h5>
+        <p class="text-muted small mb-0">Define guided walking paths by connecting various historical and natural points of interest in chronological order.</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary px-4 mt-3 mt-sm-0"><i class="fa-solid fa-plus-circle me-2"></i> Design New Route</a>
+</div>
+
+<!-- Main Cards list representing routes -->
+<div class="row g-4">
+    @if (!Model.Any())
+    {
+        <div class="col-12">
+            <div class="card p-5 text-center bg-white shadow-sm text-muted">
+                <i class="fa-solid fa-route fa-4x mb-3 text-secondary"></i>
+                <h5>No tour routes defined yet.</h5>
+                <p>Click "Design New Route" above to establish your first guided tour path.</p>
+            </div>
+        </div>
+    }
+    else
+    {
+        foreach (var route in Model)
+        {
+            <div class="col-lg-6">
+                <div class="card bg-white h-100 shadow-sm border-top border-4" style="border-top-color: @route.ColorHex !important;">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="rounded-circle d-inline-block" style="width: 16px; height: 16px; background-color: @route.ColorHex;"></span>
+                            <h5 class="fw-bold mb-0">@route.NameFr</h5>
+                        </div>
+                        <span class="badge bg-light text-dark border font-monospace">Route ID: #@route.Id</span>
+                    </div>
+                    
+                    <div class="card-body p-4 d-flex flex-column">
+                        <!-- Languages Display -->
+                        <div class="mb-3">
+                            <p class="text-muted small mb-3">@route.DescriptionFr</p>
+                            
+                            <div class="p-2.5 bg-light rounded border border-light-subtle mb-3">
+                                <span class="text-muted small fw-bold d-block mb-1">ENGLISH NAME & DESC:</span>
+                                <span class="text-dark small d-block fw-semibold mb-1">@route.NameEn</span>
+                                <span class="text-muted small d-block">@route.DescriptionEn</span>
+                            </div>
+                        </div>
+
+                        <!-- Route Details metrics -->
+                        <div class="row g-2 mb-4">
+                            <div class="col-6">
+                                <div class="bg-light p-2 rounded text-center">
+                                    <span class="text-muted small d-block">EST. DURATION</span>
+                                    <span class="fw-bold text-dark"><i class="fa-regular fa-clock me-1 text-primary"></i> @route.DurationMin mins</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="bg-light p-2 rounded text-center">
+                                    <span class="text-muted small d-block">SITES INCLUDED</span>
+                                    <span class="fw-bold text-dark"><i class="fa-solid fa-map-pin me-1 text-danger"></i> @route.SiteIds.Count stops</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stops Timeline -->
+                        <h6 class="fw-bold text-dark small mb-2"><i class="fa-solid fa-timeline me-1 text-secondary"></i> Stops Timeline (Ordered)</h6>
+                        <div class="flex-grow-1">
+                            <div class="ps-3 border-start border-secondary-subtle ms-2 d-flex flex-column gap-3 mb-4">
+                                @{
+                                    int stopIdx = 1;
+                                    foreach (var siteId in route.SiteIds)
+                                    {
+                                        var siteName = sitesDict.ContainsKey(siteId) ? sitesDict[siteId] : $"Unknown Landmark (#{siteId})";
+                                        
+                                        <div class="position-relative">
+                                            <!-- Bullet Dot -->
+                                            <span class="position-absolute bg-white border border-secondary-subtle rounded-circle text-center fw-bold text-secondary" style="width: 22px; height: 22px; left: -24px; top: 0px; font-size: 0.75rem; line-height: 20px; z-index: 5;">
+                                                @stopIdx
+                                            </span>
+                                            <span class="fw-semibold text-dark ps-2 d-block small">@siteName</span>
+                                        </div>
+                                        stopIdx++;
+                                    }
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Management Actions -->
+                        <div class="border-top pt-3 d-flex gap-2 justify-content-end mt-auto">
+                            <a asp-action="Edit" asp-route-id="@route.Id" class="btn btn-sm btn-white border border-secondary-subtle px-3">
+                                <i class="fa-solid fa-pen-to-square text-primary me-1"></i> Edit Route
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@route.Id" class="btn btn-sm btn-outline-danger px-3">
+                                <i class="fa-solid fa-trash-can me-1"></i> Delete
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
