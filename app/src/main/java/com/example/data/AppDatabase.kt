@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
         User::class,
         PurchaseOrder::class
     ],
-    version = 9,
+    version = 11,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -90,7 +90,7 @@ abstract class AppDatabase : RoomDatabase() {
             INSTANCE?.let { database ->
                 scope.launch(Dispatchers.IO) {
                     try {
-                        if (database.siteDao().getSiteCount() < 150) {
+                        if (database.siteDao().getSiteCount() < 170) {
                             val csvContent = context.assets.open("poi_export.csv").use { stream ->
                                 stream.readBytes().toString(Charsets.UTF_8)
                             }
@@ -99,8 +99,11 @@ abstract class AppDatabase : RoomDatabase() {
                                 database.siteDao().insertSites(sitesToInsert)
                             }
                         }
+                        if (database.offlineMapDao().getTileCount() < 3) {
+                            seedOfflineMapTiles(database.offlineMapDao())
+                        }
                     } catch (e: Exception) {
-                        android.util.Log.e("AppDatabase", "Error ensuring full 150+ sites onOpen", e)
+                        android.util.Log.e("AppDatabase", "Error ensuring full 170 sites onOpen", e)
                     }
                 }
             }

@@ -7,455 +7,560 @@ object Locales {
             "EN" to "Welcome to Bourges",
             "DE" to "Willkommen in Bourges",
             "ES" to "Bienvenido a Bourges",
-            "NL" to "Welkom in Bourges"
+            "NL" to "Welkom in Bourges",
+            "IT" to "Benvenuti a Bourges"
         ),
         "subtitle" to mapOf(
             "FR" to "Explorez les secrets médiévaux de l'ancienne capitale du Berry",
             "EN" to "Explore the medieval secrets of the ancient capital of Berry",
             "DE" to "Entdecken Sie die mittelalterlichen Geheimnisse der alten Hauptstadt des Berry",
             "ES" to "Explora los secretos medievales de la antigua capital del Berry",
-            "NL" to "Ontdek de middeleeuwse geheimen van de oude hoofdstad van Berry"
+            "NL" to "Ontdek de middeleeuwse geheimen van de oude hoofdstad van Berry",
+            "IT" to "Esplora i segreti medievali dell'antica capitale del Berry"
         ),
         "active_route" to mapOf(
             "FR" to "Parcours Actif",
             "EN" to "Active Route",
             "DE" to "Aktive Route",
             "ES" to "Ruta Activa",
-            "NL" to "Actieve Route"
+            "NL" to "Actieve Route",
+            "IT" to "Percorso Attivo"
         ),
         "showing_paths" to mapOf(
             "FR" to "Affichage des trajets sur la carte interactive",
             "EN" to "Showing paths on the interactive map",
             "DE" to "Pfade auf der interaktiven Karte anzeigen",
             "ES" to "Mostrando trayectos en el mapa interactivo",
-            "NL" to "Paden weergeven op de interactieve kaart"
+            "NL" to "Paden weergeven op de interactieve kaart",
+            "IT" to "Visualizzazione dei percorsi sulla mappa interattiva"
         ),
         "remove_route" to mapOf(
             "FR" to "Quitter le parcours",
             "EN" to "Remove route",
             "DE" to "Route entfernen",
             "ES" to "Quitar ruta",
-            "NL" to "Route verwijderen"
+            "NL" to "Route verwijderen",
+            "IT" to "Lascia il percorso"
         ),
         "map_prompt" to mapOf(
             "FR" to "* Appuyez sur les points d'intérêt sur la carte pour centrer et lancer l'audioguide.",
             "EN" to "* Click on the points of interest on the map to center and start the audio guide.",
             "DE" to "* Klicken Sie auf die Sehenswürdigkeiten auf der Karte, um sie zu zentrieren und den Audioguide zu starten.",
             "ES" to "* Pulsa sobre los puntos de interés en el mapa para centrar e iniciar la audioguía.",
-            "NL" to "* Klik op de bezienswaardigheden op de kaart om te centreren en de audiogids te starten."
+            "NL" to "* Klik op de bezienswaardigheden op de kaart om te centreren en de audiogids te starten.",
+            "IT" to "* Tocca i punti di interesse sulla mappa per centrare e avviare l'audioguida."
         ),
         "search_placeholder" to mapOf(
             "FR" to "Rechercher des attractions ou des histoires...",
             "EN" to "Search attractions or stories...",
             "DE" to "Suchen Sie nach Attraktionen oder Geschichten...",
             "ES" to "Buscar atracciones o historias...",
-            "NL" to "Zoek attracties of verhalen..."
+            "NL" to "Zoek attracties of verhalen...",
+            "IT" to "Cerca monumenti o storie..."
         ),
         "header_poi" to mapOf(
             "FR" to "POINTS D'INTÉRÊT À BOURGES",
             "EN" to "POINTS OF INTEREST IN BOURGES",
             "DE" to "SEHENSWÜRDIGKEITEN IN BOURGES",
             "ES" to "PUNTOS DE INTERÉS EN BOURGES",
-            "NL" to "BEZIENSWAARDIGHEDEN IN BOURGES"
+            "NL" to "BEZIENSWAARDIGHEDEN IN BOURGES",
+            "IT" to "PUNTI DI INTERESSE A BOURGES"
         ),
         "coords" to mapOf(
             "FR" to "Coordonnées",
             "EN" to "Coordinates",
             "DE" to "Koordinaten",
             "ES" to "Coordenadas",
-            "NL" to "Coördinaten"
+            "NL" to "Coördinaten",
+            "IT" to "Coordinate"
         ),
         "stop_voice" to mapOf(
             "FR" to "Arrêter la voix",
             "EN" to "Stop Voice",
             "DE" to "Stimme anhalten",
             "ES" to "Detener Voz",
-            "NL" to "Stem stoppen"
+            "NL" to "Stem stoppen",
+            "IT" to "Interrompi Voce"
         ),
         "start_audio" to mapOf(
             "FR" to "Lancer l'audioguide",
             "EN" to "Start Audio Guide",
             "DE" to "Audioguide starten",
             "ES" to "Iniciar Audioguía",
-            "NL" to "Audiogids starten"
+            "NL" to "Audiogids starten",
+            "IT" to "Avvia Audioguida"
         ),
         "no_attractions" to mapOf(
             "FR" to "Aucune attraction trouvée pour votre recherche.",
             "EN" to "No attractions found for your search.",
             "DE" to "Keine Attraktionen für Ihre Suche gefunden.",
             "ES" to "No se encontraron atracciones para tu búsqueda.",
-            "NL" to "Geen attracties gevonden voor je zoekopdracht."
+            "NL" to "Geen attracties gevonden voor je zoekopdracht.",
+            "IT" to "Nessun punto di interesse trovato per la tua ricerca."
         ),
         "routes_header" to mapOf(
             "FR" to "PARCOURS THÉMATIQUES",
             "EN" to "THEMATIC ROUTES",
             "DE" to "THEMATISCHE ROUTEN",
             "ES" to "RECORRIDOS TEMÁTICOS",
-            "NL" to "THEMATISCHE ROUTES"
+            "NL" to "THEMATISCHE ROUTES",
+            "IT" to "PERCORSI TEMATICI"
         ),
         "routes_desc" to mapOf(
             "FR" to "Visites guidées par des experts pour vous immerger dans le patrimoine de Bourges. Sélectionnez un parcours pour le projeter directement sur la carte.",
             "EN" to "Expert-guided tours to immerse yourself in Bourges' heritage. Select a route to project it directly on the guide map.",
             "DE" to "Von Experten geführte Touren, um in das Erbe von Bourges einzutauchen. Wählen Sie eine Route aus, um sie direkt auf die Karte zu projizieren.",
             "ES" to "Rutas guiadas por expertos para sumergirte en el patrimonio de Bourges. Selecciona una ruta para proyectarla directamente sobre el mapa guía.",
-            "NL" to "Tours onder leiding van experts om je onder te dompelen in het erfgoed van Bourges. Selecteer een route om deze rechtstreeks op de kaart te projecteren."
+            "NL" to "Tours onder leiding van experts om je onder te dompelen in het erfgoed van Bourges. Selecteer een route om deze rechtstreeks op de kaart te projecteren.",
+            "IT" to "Visite guidate da esperti per immergersi nel patrimonio di Bourges. Seleziona un percorso per proiettarlo direttamente sulla mappa."
         ),
         "route_stops" to mapOf(
             "FR" to "Arrêts sur ce parcours :",
             "EN" to "Stops on this itinerary:",
             "DE" to "Haltestellen auf dieser Route:",
             "ES" to "Paradas en este itinerario:",
-            "NL" to "Stoppen op deze route:"
+            "NL" to "Stoppen op deze route:",
+            "IT" to "Tappe su questo percorso:"
         ),
         "map_view" to mapOf(
             "FR" to "Voir sur la carte",
             "EN" to "View on Map",
             "DE" to "Auf der Karte anzeigen",
             "ES" to "Ver en el Mapa Guía",
-            "NL" to "Op de kaart bekijken"
+            "NL" to "Op de kaart bekijken",
+            "IT" to "Vedi sulla mappa"
         ),
         "trace_route" to mapOf(
             "FR" to "Suivre le parcours",
             "EN" to "Trace Route on Map",
             "DE" to "Route auf Karte zeichnen",
             "ES" to "Trazar Ruta en Mapa",
-            "NL" to "Route op de kaart tekenen"
+            "NL" to "Route op de kaart tekenen",
+            "IT" to "Segui il percorso sulla mappa"
         ),
         "admin_header" to mapOf(
             "FR" to "SYSTÈME D'ADMINISTRATION DES SITES",
             "EN" to "SITE ADMINISTRATION SYSTEM",
             "DE" to "VERWALTUNGSSYSTEM FÜR SEHENSWÜRDIGKEITEN",
             "ES" to "SISTEMA ADMIN DE SITIOS",
-            "NL" to "BEHEERSYSTEEM VOOR BEZIENSWAARDIGHEDEN"
+            "NL" to "BEHEERSYSTEEM VOOR BEZIENSWAARDIGHEDEN",
+            "IT" to "SISTEMA DI AMMINISTRAZIONE DEI SITI"
         ),
         "admin_desc" to mapOf(
             "FR" to "Formulaire d'administration (Backend Local). Ajoutez de nouveaux points d'intérêt ou éditez-les directement. Vos points apparaîtront sur la carte interactive ainsi que sur la liste de découverte principale.",
             "EN" to "Admin form (Local Backend). Add new points of interest or edit them directly. Your points will appear on the interactive map and the main discover list.",
             "DE" to "Admin-Formular (Lokales Backend). Fügen Sie neue Sehenswürdigkeiten hinzu oder bearbeiten Sie sie direkt. Ihre Punkte erscheinen auf der interaktiven Karte und in der Hauptentdeckungsliste.",
             "ES" to "Formulario administrativo (Backend Local). Añade nuevos puntos de interés o edítalos directamente. Tus puntos aparecerán en la carta interactiva así como en la lista de descubrimiento principal.",
-            "NL" to "Beheerdersformulier (Lokale Backend). Voeg nieuwe bezienswaardigheden toe of bewerk ze direct. Je punten verschijnen op de interactieve kaart en de hoofdlijst."
+            "NL" to "Beheerdersformulier (Lokale Backend). Voeg nieuwe bezienswaardigheden toe of bewerk ze direct. Je punten verschijnen op de interactieve kaart en de hoofdlijst.",
+            "IT" to "Modulo amministrativo (Backend Locale). Aggiungi nuovi punti di interesse o modificali direttamente. I tuoi punti appariranno sulla mappa interattiva."
         ),
         "attr_name" to mapOf(
             "FR" to "Nom de l'attraction *",
             "EN" to "Attraction Name *",
             "DE" to "Name der Attraktion *",
             "ES" to "Nombre de la Atracción *",
-            "NL" to "Naam van de attractie *"
+            "NL" to "Naam van de attractie *",
+            "IT" to "Nome dell'attrazione *"
         ),
         "attr_category" to mapOf(
             "FR" to "Catégorie du monument :",
             "EN" to "Monument Category:",
             "DE" to "Kategorie der Sehenswürdigkeit:",
             "ES" to "Categoría del Monumento:",
-            "NL" to "Categorie van het monument:"
+            "NL" to "Categorie van het monument:",
+            "IT" to "Categoria del monumento:"
         ),
         "map_location" to mapOf(
             "FR" to "Emplacement sur le plan de Bourges :",
             "EN" to "Location on Bourges Map:",
             "DE" to "Lage auf der Karte von Bourges:",
             "ES" to "Ubicación en el Plano de Bourges:",
-            "NL" to "Locatie op de kaart van Bourges:"
+            "NL" to "Locatie op de kaart van Bourges:",
+            "IT" to "Posizione sulla mappa di Bourges:"
         ),
         "lat_label" to mapOf(
             "FR" to "Latitude Nord (GPS) :",
             "EN" to "North Latitude (GPS):",
             "DE" to "Nördliche Breite (GPS):",
             "ES" to "Latitud Norte (GPS):",
-            "NL" to "Noorderbreedte (GPS):"
+            "NL" to "Noorderbreedte (GPS):",
+            "IT" to "Latitudine Nord (GPS):"
         ),
         "lng_label" to mapOf(
             "FR" to "Longitude Est (GPS) :",
             "EN" to "East Longitude (GPS):",
             "DE" to "Östliche Länge (GPS):",
             "ES" to "Longitud Este (GPS):",
-            "NL" to "Oosterlengte (GPS):"
+            "NL" to "Oosterlengte (GPS):",
+            "IT" to "Longitudine Est (GPS):"
         ),
         "zone_centre" to mapOf(
             "FR" to "Zone Centre (Cathédrale / Palais)",
             "EN" to "Center Zone (Cathedral / Palace)",
             "DE" to "Zentrumszone (Kathedrale / Palast)",
             "ES" to "Zona Centro (Catedral / Palacio)",
-            "NL" to "Centrumzone (Kathedraal / Paleis)"
+            "NL" to "Centrumzone (Kathedraal / Paleis)",
+            "IT" to "Zona Centro (Cattedrale / Palazzo)"
         ),
         "zone_marshes" to mapOf(
             "FR" to "Zone Marais (Nord-Est)",
             "EN" to "Marshes Zone (North-East)",
             "DE" to "Sumpfgebiet (Nordost)",
             "ES" to "Zona Pantanos (Nordeste)",
-            "NL" to "Moeraszone (Noordoost)"
+            "NL" to "Moeraszone (Noordoost)",
+            "IT" to "Zona Paludi (Nord-Est)"
         ),
         "short_desc" to mapOf(
             "FR" to "Description touristique courte *",
             "EN" to "Short Tourist Description *",
             "DE" to "Kurze touristische Beschreibung *",
             "ES" to "Descripción Turística Corta *",
-            "NL" to "Korte toeristische beschrijving *"
+            "NL" to "Korte toeristische beschrijving *",
+            "IT" to "Descrizione turistica breve *"
         ),
         "narration_script" to mapOf(
             "FR" to "Script de narration (Texte pour TTS) *",
             "EN" to "Narration Script (TTS Text) *",
             "DE" to "Sprechertext (TTS-Text) *",
             "ES" to "Guión de Narración (Texto para TTS)*",
-            "NL" to "Narratiescript (TTS-tekst) *"
+            "NL" to "Narratiescript (TTS-tekst) *",
+            "IT" to "Copione di narrazione (Testo per TTS) *"
         ),
         "script_placeholder" to mapOf(
             "FR" to "Écrivez le texte que la voix narrera étape par étape à l'utilisateur...",
             "EN" to "Write the text that the voice will narrate step-by-step to the user...",
             "DE" to "Schreiben Sie den Text, den die Stimme Schritt für Schritt dem Benutzer vorliest...",
             "ES" to "Escribe el texto que la voz narrará paso a paso al usuario...",
-            "NL" to "Schrijf de tekst die de stem stap voor stap aan de gebruiker zal voorlezen..."
+            "NL" to "Schrijf de tekst die de stem stap voor stap aan de gebruiker zal voorlezen...",
+            "IT" to "Scrivi il testo che la voce narrerà passo dopo passo all'utente..."
         ),
         "save_poi" to mapOf(
             "FR" to "Enregistrer le point d'intérêt",
             "EN" to "Save Point of Interest",
             "DE" to "Sehenswürdigkeit speichern",
             "ES" to "Guardar Punto de Interés",
-            "NL" to "Bezienswaardigheid opslaan"
+            "NL" to "Bezienswaardigheid opslaan",
+            "IT" to "Salva punto di interesse"
         ),
         "discover_tab" to mapOf(
             "FR" to "Découvrir",
             "EN" to "Discover",
             "DE" to "Entdecken",
             "ES" to "Descubrir",
-            "NL" to "Ontdekken"
+            "NL" to "Ontdekken",
+            "IT" to "Scopri"
         ),
         "routes_tab" to mapOf(
             "FR" to "Parcours",
             "EN" to "Routes",
             "DE" to "Routen",
             "ES" to "Rutas",
-            "NL" to "Routes"
+            "NL" to "Routes",
+            "IT" to "Percorsi"
         ),
         "admin_tab" to mapOf(
             "FR" to "Admin POI",
             "EN" to "Admin POI",
             "DE" to "Admin POI",
             "ES" to "Admin POI",
-            "NL" to "Beheerder POI"
+            "NL" to "Beheerder POI",
+            "IT" to "Admin POI"
         ),
         "voice_narrator" to mapOf(
             "FR" to "NARRATEUR VOCAL",
             "EN" to "VOICE NARRATOR",
             "DE" to "STRECKENSPRECHER",
             "ES" to "NARRADOR DE VOZ",
-            "NL" to "STEMNARRATOR"
+            "NL" to "STEMNARRATOR",
+            "IT" to "NARRATORE VOCALE"
         ),
         "voice_narrator_sub" to mapOf(
             "FR" to "Narrateur Vocal • Bourges Guide",
             "EN" to "Voice Narrator • Bourges Guide",
             "DE" to "Sprecher • Bourges Guide",
             "ES" to "Narrador de Voz • Bourges Guide",
-            "NL" to "Stemnarrator • Bourges Guide"
+            "NL" to "Stemnarrator • Bourges Guide",
+            "IT" to "Narratore Vocale • Bourges Guide"
         ),
         "edge_tts_badge" to mapOf(
-            "FR" to "Microsoft Edge Neural TTS",
-            "EN" to "Microsoft Edge Neural TTS",
-            "DE" to "Microsoft Edge Neural TTS",
-            "ES" to "Microsoft Edge Neural TTS",
-            "NL" to "Microsoft Edge Neural TTS"
+            "FR" to "Moteur TTS Neural Haute Définition",
+            "EN" to "High-Definition Neural TTS Engine",
+            "DE" to "Hochauflösende neuronale TTS",
+            "ES" to "Motor TTS Neural de Alta Definición",
+            "NL" to "High-Definition Neurale TTS",
+            "IT" to "Motore TTS Neurale ad Alta Definizione"
         ),
         "voice_female" to mapOf(
             "FR" to "Voix féminine",
             "EN" to "Female voice",
             "DE" to "Weibliche Stimme",
             "ES" to "Voz femenina",
-            "NL" to "Vrouwelijke stem"
+            "NL" to "Vrouwelijke stem",
+            "IT" to "Voce femminile"
         ),
         "voice_male" to mapOf(
             "FR" to "Voix masculine",
             "EN" to "Male voice",
             "DE" to "Männliche Stimme",
             "ES" to "Voz masculina",
-            "NL" to "Mannelijke stem"
+            "NL" to "Mannelijke stem",
+            "IT" to "Voce maschile"
         ),
         "map_mode_google" to mapOf(
             "FR" to "Google Maps 🗺️",
             "EN" to "Google Maps 🗺️",
             "DE" to "Google Maps 🗺️",
             "ES" to "Google Maps 🗺️",
-            "NL" to "Google Maps 🗺️"
+            "NL" to "Google Maps 🗺️",
+            "IT" to "Google Maps 🗺️"
         ),
         "map_mode_artistic" to mapOf(
             "FR" to "Carte Illustrée 🎨",
             "EN" to "Illustrated Map 🎨",
             "DE" to "Illustrated Map 🎨",
             "ES" to "Mapa Ilustrado 🎨",
-            "NL" to "Geïllustreerde Kaart 🎨"
+            "NL" to "Geïllustreerde Kaart 🎨",
+            "IT" to "Mappa Illustrata 🎨"
         ),
         "map_type_normal" to mapOf(
             "FR" to "Plan",
             "EN" to "Map",
             "DE" to "Karte",
             "ES" to "Mapa",
-            "NL" to "Kaart"
+            "NL" to "Kaart",
+            "IT" to "Mappa"
         ),
         "map_type_satellite" to mapOf(
             "FR" to "Satellite 🛰️",
             "EN" to "Satellite 🛰️",
             "DE" to "Satellit 🛰️",
             "ES" to "Satélite 🛰️",
-            "NL" to "Satelliet 🛰️"
+            "NL" to "Satelliet 🛰️",
+            "IT" to "Satellite 🛰️"
         ),
         "map_type_terrain" to mapOf(
             "FR" to "Relief ⛰️",
             "EN" to "Terrain ⛰️",
             "DE" to "Gelände ⛰️",
             "ES" to "Relieve ⛰️",
-            "NL" to "Terrein ⛰️"
+            "NL" to "Terrein ⛰️",
+            "IT" to "Rilievo ⛰️"
         ),
         "official_audio" to mapOf(
             "FR" to "Audiosite Officiel",
             "EN" to "Official Audiosite",
             "DE" to "Offizieller Audioguide",
             "ES" to "Audiositio Oficial",
-            "NL" to "Officiële Audiosite"
+            "NL" to "Officiële Audiosite",
+            "IT" to "Audiosito Ufficiale"
         ),
         "local_audio" to mapOf(
             "FR" to "Collaboration Locale",
             "EN" to "Local Collaboration",
             "DE" to "Lokale Zusammenarbeit",
             "ES" to "Colaboración Local",
-            "NL" to "Lokale Samenwerking"
+            "NL" to "Lokale Samenwerking",
+            "IT" to "Collaborazione Locale"
         ),
         "gps_navigation" to mapOf(
             "FR" to "Y aller (GPS)",
             "EN" to "Navigate (GPS)",
             "DE" to "Navigieren (GPS)",
             "ES" to "Navegar (GPS)",
-            "NL" to "Navigeren (GPS)"
+            "NL" to "Navigeren (GPS)",
+            "IT" to "Naviga (GPS)"
         ),
         "admin_mode" to mapOf(
             "FR" to "Mode Administrateur",
             "EN" to "Admin Mode",
             "DE" to "Admin-Modus",
             "ES" to "Modo Administrador",
-            "NL" to "Beheerdersmodus"
+            "NL" to "Beheerdersmodus",
+            "IT" to "Modalità Amministratore"
         ),
         "admin_pin_instruction" to mapOf(
             "FR" to "Saisissez le code d'accès de sécurité pour déverrouiller la gestion interactive des sites et des parcours :",
             "EN" to "Enter the security PIN to unlock interactive management of sites and routes:",
             "DE" to "Geben Sie die Sicherheits-PIN ein, um die interaktive Verwaltung von Sehenswürdigkeiten und Routen freizuschalten:",
             "ES" to "Introduzca el PIN de seguridad para desbloquear la gestión interactiva de sitios y rutas:",
-            "NL" to "Voer de beveiligings-PIN in om interactief beheer van sites en routes te ontgrendelen:"
+            "NL" to "Voer de beveiligings-PIN in om interactief beheer van sites en routes te ontgrendelen:",
+            "IT" to "Inserisci il PIN di sicurezza per sbloccare la gestione interattiva dei siti e dei percorsi:"
         ),
         "invalid_pin" to mapOf(
             "FR" to "Code PIN de sécurité incorrect.",
             "EN" to "Incorrect security PIN.",
             "DE" to "Falsche Sicherheits-PIN.",
             "ES" to "PIN de seguridad incorrecto.",
-            "NL" to "Onjuiste beveiligings-PIN."
+            "NL" to "Onjuiste beveiligings-PIN.",
+            "IT" to "PIN di sicurezza errato."
         ),
         "admin_mode_unlocked" to mapOf(
             "FR" to "Mode Administrateur déverrouillé !",
             "EN" to "Admin Mode unlocked!",
             "DE" to "Admin-Modus freigeschaltet!",
             "ES" to "¡Modo Administrador desbloqueado!",
-            "NL" to "Beheerdersmodus ontgrendeld!"
+            "NL" to "Beheerdersmodus ontgrendeld!",
+            "IT" to "Modalità Amministratore sbloccata!"
         ),
         "exit_admin" to mapOf(
             "FR" to "Quitter l'Admin",
             "EN" to "Exit Admin",
             "DE" to "Admin beenden",
             "ES" to "Salir de Admin",
-            "NL" to "Beheerder verlaten"
+            "NL" to "Beheerder verlaten",
+            "IT" to "Esci da Admin"
         ),
         "routes_tab_predefined" to mapOf(
             "FR" to "Parcours Thématiques",
             "EN" to "Predefined Routes",
             "DE" to "Thematische Routen",
             "ES" to "Rutas Temáticas",
-            "NL" to "Thematische Routes"
+            "NL" to "Thematische Routes",
+            "IT" to "Percorsi Tematici"
         ),
         "routes_tab_planner" to mapOf(
             "FR" to "Planificateur Intelligent",
             "EN" to "Smart Planner",
             "DE" to "Intelligenter Planer",
             "ES" to "Planificador Inteligente",
-            "NL" to "Slimme Planner"
+            "NL" to "Slimme Planner",
+            "IT" to "Pianificatore Intelligente"
         ),
         "planner_title" to mapOf(
             "FR" to "Générateur de Parcours Sur-Mesure",
             "EN" to "Custom Itinerary Generator",
             "DE" to "Maßgeschneiderter Routenplaner",
             "ES" to "Generador de Itinerario a Medida",
-            "NL" to "Op Maat Gemaakte Routeplanner"
+            "NL" to "Op Maat Gemaakte Routeplanner",
+            "IT" to "Generatore di Percorso su Misura"
         ),
         "planner_desc" to mapOf(
             "FR" to "Optimisez votre temps à Bourges ! Saisissez le temps dont vous disposez et votre point de départ pour recevoir instantanément un parcours optimisé de marche.",
             "EN" to "Optimize your time in Bourges! Enter your available time and starting point to instantly receive an optimized walking tour.",
             "DE" to "Optimieren Sie Ihre Zeit in Bourges! Geben Sie Ihre verfügbare Zeit und Ihren Ausgangspunkt ein, um sofort eine optimierte Route zu erhalten.",
             "ES" to "¡Optimice su tiempo en Bourges! Introduzca el tiempo disponible y su punto de partida para recibir al instante una ruta optimizada.",
-            "NL" to "Optimaliseer uw tijd in Bourges! Voer uw beschikbare tijd en startpunt in om direct een geoptimaliseerde route te ontvangen."
+            "NL" to "Optimaliseer uw tijd in Bourges! Voer uw beschikbare tijd en startpunt in om direct een geoptimaliseerde route te ontvangen.",
+            "IT" to "Ottimizza il tuo tempo a Bourges! Inserisci il tempo a disposizione e il tuo punto di partenza per ricevere subito un itinerario a piedi ottimizzato."
         ),
         "planner_start_point" to mapOf(
             "FR" to "Point de départ :",
             "EN" to "Starting point:",
             "DE" to "Ausgangspunkt:",
             "ES" to "Punto de partida:",
-            "NL" to "Startpunt:"
+            "NL" to "Startpunt:",
+            "IT" to "Punto di partenza:"
         ),
         "planner_gps_option" to mapOf(
             "FR" to "Ma position actuelle (GPS)",
             "EN" to "My current location (GPS)",
             "DE" to "Mein aktueller Standort (GPS)",
             "ES" to "Mi ubicación actual (GPS)",
-            "NL" to "Mijn huidige locatie (GPS)"
+            "NL" to "Mijn huidige locatie (GPS)",
+            "IT" to "La mia posizione attuale (GPS)"
         ),
         "planner_btn_generate" to mapOf(
             "FR" to "Suggérer le meilleur parcours",
             "EN" to "Suggest optimal route",
             "DE" to "Optimale Route vorschlagen",
             "ES" to "Sugerir ruta óptima",
-            "NL" to "Optimale route voorstellen"
+            "NL" to "Optimale route voorstellen",
+            "IT" to "Suggerisci il percorso ottimale"
         ),
         "planner_no_result" to mapOf(
             "FR" to "Aucun point d'intérêt ne peut être visité dans ce délai depuis ce point de départ. Essayez d'augmenter le temps !",
             "EN" to "No points of interest can be visited within this timeframe from this starting point. Try increasing the time!",
             "DE" to "Innerhalb dieses Zeitrahmens können von diesem Ausgangspunkt aus keine Sehenswürdigkeiten besucht werden. Versuchen Sie, die Zeit zu erhöhen!",
             "ES" to "No se puede visitar ningún punto de interés en este plazo desde este punto de partida. ¡Intenta aumentar el tiempo!",
-            "NL" to "Er kunnen binnen dit tijdsbestek geen bezienswaardigheden worden bezocht vanaf dit startpunt. Probeer de tijd te verhogen!"
+            "NL" to "Er kunnen binnen dit tijdsbestek geen bezienswaardigheden worden bezocht vanaf dit startpunt. Probeer de tijd te verhogen!",
+            "IT" to "Nessun punto di interesse può essere visitato in questo arco di tempo partendo da qui. Prova ad aumentare il tempo!"
         ),
         "planner_result_header" to mapOf(
             "FR" to "Votre parcours recommandé",
             "EN" to "Your recommended itinerary",
             "DE" to "Ihre empfohlene Route",
             "ES" to "Tu itinerario recomendado",
-            "NL" to "Uw aanbevolen route"
+            "NL" to "Uw aanbevolen route",
+            "IT" to "Il tuo itinerario consigliato"
         ),
         "planner_project_btn" to mapOf(
             "FR" to "Suivre ce parcours sur la carte",
             "EN" to "Follow this route on map",
             "DE" to "Dieser Route auf der Karte folgen",
             "ES" to "Seguir esta ruta en el mapa",
-            "NL" to "Volg deze route op de kaart"
+            "NL" to "Volg deze route op de kaart",
+            "IT" to "Segui questo percorso sulla mappa"
         ),
         "see_details" to mapOf(
             "FR" to "Voir la fiche détaillée",
             "EN" to "View detailed page",
             "DE" to "Detaillierte Seite anzeigen",
             "ES" to "Ver ficha detallada",
-            "NL" to "Bekijk gedetailleerde pagina"
+            "NL" to "Bekijk gedetailleerde pagina",
+            "IT" to "Vedi scheda dettagliata"
         ),
         "back_to_list" to mapOf(
             "FR" to "Retour",
             "EN" to "Back",
             "DE" to "Zurück",
             "ES" to "Volver",
-            "NL" to "Terug"
+            "NL" to "Terug",
+            "IT" to "Indietro"
         ),
         "poi_details_title" to mapOf(
             "FR" to "Fiche du Monument",
             "EN" to "Monument Details",
             "DE" to "Details zum Denkmal",
             "ES" to "Ficha del Monumento",
-            "NL" to "Details van het Monument"
+            "NL" to "Details van het Monument",
+            "IT" to "Scheda del Monumento"
         ),
         "category_label" to mapOf(
             "FR" to "Catégorie",
             "EN" to "Category",
             "DE" to "Kategorie",
             "ES" to "Categoría",
-            "NL" to "Categorie"
+            "NL" to "Categorie",
+            "IT" to "Categoria"
+        ),
+        "audio_language_title" to mapOf(
+            "FR" to "Langue de l'Audioguide",
+            "EN" to "Audio Guide Language",
+            "DE" to "Sprache des Audioguides",
+            "ES" to "Idioma de la Audioguía",
+            "NL" to "Taal van de Audiogids",
+            "IT" to "Lingua dell'Audioguida"
+        ),
+        "audio_language_sub" to mapOf(
+            "FR" to "Choisissez la langue pour les narrations des monuments",
+            "EN" to "Choose language for monument narrations",
+            "DE" to "Wählen Sie die Sprache für die Monument-Führungen",
+            "ES" to "Elige el idioma para las narraciones de los monumentos",
+            "NL" to "Kies de taal voor de monumentvertellingen",
+            "IT" to "Scegli la lingua per le narrazioni dei monumenti"
+        ),
+        "narration_language" to mapOf(
+            "FR" to "Langue de narration",
+            "EN" to "Narration language",
+            "DE" to "Erzählsprache",
+            "ES" to "Idioma de narración",
+            "NL" to "Verteltaal",
+            "IT" to "Lingua di narrazione"
+        ),
+        "immersive_audio_guide" to mapOf(
+            "FR" to "Audioguide immersif",
+            "EN" to "Immersive Audio Guide",
+            "DE" to "Immersiver Audioguide",
+            "ES" to "Audioguía inmersiva",
+            "NL" to "Meeslepende audiogids",
+            "IT" to "Audioguida immersiva"
+        ),
+        "high_quality_voice" to mapOf(
+            "FR" to "Voix de haute qualité",
+            "EN" to "High-quality narration",
+            "DE" to "Hochwertige Sprachausgabe",
+            "ES" to "Narración de alta calidad",
+            "NL" to "Stem van hoge kwaliteit",
+            "IT" to "Narrazione di alta qualità"
         )
     )
 

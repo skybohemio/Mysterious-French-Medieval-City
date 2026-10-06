@@ -23,10 +23,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.R
 import com.example.data.Site
 import com.example.data.TourRoute
+import com.example.ui.components.IllustratedScrimBox
 import com.example.ui.theme.RegalBlue
 import com.example.ui.theme.SandstoneGold
+import com.example.ui.util.BourgesIllustrationHelper
 
 /**
  * Landing Page: Choix de parcours immersifs de Bourges.
@@ -60,24 +63,23 @@ fun TourSelectionScreen(
             .testTag("tour_selection_landing_page"),
         contentPadding = PaddingValues(bottom = 96.dp)
     ) {
-        // Hero Landing Header
+        // Hero Landing Header: Single unified illustration of Bourges (Cathédrale Saint-Étienne)
         item {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(
-                                RegalBlue,
-                                Color(0xFF0F233E)
-                            )
-                        )
-                    )
-                    .padding(horizontal = 20.dp, vertical = 24.dp)
+            IllustratedScrimBox(
+                imageModel = R.drawable.img_cathedrale,
+                contentDescription = "Cathédrale Saint-Étienne de Bourges",
+                modifier = Modifier.fillMaxWidth(),
+                topScrimAlpha = 0.65f,
+                middleScrimAlpha = 0.82f,
+                bottomScrimAlpha = 0.95f
             ) {
-                Column {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 26.dp)
+                ) {
                     Surface(
-                        color = SandstoneGold.copy(alpha = 0.2f),
+                        color = SandstoneGold.copy(alpha = 0.25f),
                         shape = RoundedCornerShape(16.dp),
                         modifier = Modifier.padding(bottom = 10.dp)
                     ) {
@@ -111,7 +113,7 @@ fun TourSelectionScreen(
                     Text(
                         text = "Découvrez la cité des alchimistes au fil d'itinéraires thématiques contés pas à pas. 2 circuits gratuits d'initiation et 6 parcours thématiques complets.",
                         style = MaterialTheme.typography.bodyMedium.copy(
-                            color = Color.White.copy(alpha = 0.85f),
+                            color = Color.White.copy(alpha = 0.88f),
                             lineHeight = 20.sp
                         )
                     )
@@ -253,6 +255,7 @@ private fun TourRouteCard(
 ) {
     val isFree = !route.isPaid
     val isPurchased = route.isPurchased
+    val routeImage = BourgesIllustrationHelper.resolveImageForRoute(route)
 
     Card(
         shape = RoundedCornerShape(18.dp),
@@ -268,129 +271,147 @@ private fun TourRouteCard(
             )
             .testTag("tour_card_${route.id}")
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            // Top row: Theme Badge & Free / Paid Pill
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+        Column(modifier = Modifier.fillMaxWidth()) {
+            // Illustrated Banner with Scrim Overlay
+            IllustratedScrimBox(
+                imageModel = routeImage,
+                contentDescription = route.getLocalizedName(langCode),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(135.dp),
+                topScrimAlpha = 0.40f,
+                middleScrimAlpha = 0.60f,
+                bottomScrimAlpha = 0.90f
             ) {
-                // Route duration & steps chip
+                // Top row: Theme Badge & Free / Paid Pill
                 Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Surface(
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        shape = RoundedCornerShape(8.dp)
+                    // Route duration & steps chip
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        Text(
-                            text = "⏱️ ${route.durationMin} min",
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
-                        )
+                        Surface(
+                            color = Color.Black.copy(alpha = 0.6f),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text(
+                                text = "⏱️ ${route.durationMin} min",
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, color = Color.White),
+                                modifier = Modifier.padding(horizontal = 7.dp, vertical = 4.dp)
+                            )
+                        }
+
+                        Surface(
+                            color = Color.Black.copy(alpha = 0.6f),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text(
+                                text = "📍 ${route.siteIds.size} étapes",
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, color = Color.White),
+                                modifier = Modifier.padding(horizontal = 7.dp, vertical = 4.dp)
+                            )
+                        }
                     }
 
-                    Surface(
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text(
-                            text = "📍 ${route.siteIds.size} étapes",
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
-                        )
+                    // Price pill
+                    if (isFree) {
+                        Surface(
+                            color = Color(0xFF2E7D32),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                            ) {
+                                Text(
+                                    text = "● GRATUIT",
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = Color.White,
+                                        letterSpacing = 0.5.sp
+                                    )
+                                )
+                            }
+                        }
+                    } else if (isPurchased) {
+                        Surface(
+                            color = Color(0xFF00897B),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "DÉBLOQUÉ",
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = Color.White
+                                    )
+                                )
+                            }
+                        }
+                    } else {
+                        Surface(
+                            color = SandstoneGold,
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Lock,
+                                    contentDescription = null,
+                                    tint = Color.Black,
+                                    modifier = Modifier.size(12.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "9,00 €",
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = Color.Black
+                                    )
+                                )
+                            }
+                        }
                     }
                 }
 
-                // Price pill
-                if (isFree) {
-                    Surface(
-                        color = Color(0xFF2E7D32).copy(alpha = 0.15f),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                        ) {
-                            Text(
-                                text = "● GRATUIT",
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontWeight = FontWeight.ExtraBold,
-                                    color = Color(0xFF2E7D32),
-                                    letterSpacing = 0.5.sp
-                                )
-                            )
-                        }
-                    }
-                } else if (isPurchased) {
-                    Surface(
-                        color = Color(0xFF00897B).copy(alpha = 0.15f),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = null,
-                                tint = Color(0xFF00897B),
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = "DÉBLOQUÉ",
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontWeight = FontWeight.ExtraBold,
-                                    color = Color(0xFF00897B)
-                                )
-                            )
-                        }
-                    }
-                } else {
-                    Surface(
-                        color = SandstoneGold.copy(alpha = 0.25f),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Lock,
-                                contentDescription = null,
-                                tint = SandstoneGold,
-                                modifier = Modifier.size(12.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = "9,00 €",
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontWeight = FontWeight.ExtraBold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                            )
-                        }
-                    }
-                }
+                // Route Title on Scrim
+                Text(
+                    text = route.getLocalizedName(langCode),
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 17.sp,
+                        letterSpacing = 0.3.sp
+                    ),
+                    color = Color.White,
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(horizontal = 14.dp, vertical = 10.dp)
+                )
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // Title
-            Text(
-                text = route.getLocalizedName(langCode),
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 17.sp
-                ),
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(14.dp)
+            ) {
 
             Spacer(modifier = Modifier.height(6.dp))
 
@@ -506,4 +527,5 @@ private fun TourRouteCard(
             }
         }
     }
+}
 }

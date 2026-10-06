@@ -52,6 +52,8 @@ import com.example.ui.components.AudioPlayerController
 import com.example.ui.components.CsvExportDialog
 import com.example.ui.components.CsvImportDialog
 import com.example.ui.components.InteractiveBourgesMap
+import com.example.ui.components.BourgesThreeJS3DView
+import com.example.ui.components.BourgesFirstPersonWalkView
 import com.example.ui.components.MysteryArticleSheet
 import com.example.ui.components.MysteryPlayerBottomBar
 import com.example.ui.components.StripeCheckoutDialog
@@ -195,6 +197,7 @@ fun BourgesGuideApp(
     val allPurchases by viewModel.allPurchases.collectAsStateWithLifecycle()
 
     var showUserAuthDialog by remember { mutableStateOf(false) }
+    var showThreeJS3DView by remember { mutableStateOf(false) }
     var inspectRouteForCart by remember { mutableStateOf<TourRoute?>(null) }
     var stripeCheckoutRoute by remember { mutableStateOf<TourRoute?>(null) }
 
@@ -274,6 +277,31 @@ fun BourgesGuideApp(
                     }
                 },
                 actions = {
+                    Button(
+                        onClick = { showThreeJS3DView = true },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = SandstoneGold,
+                            contentColor = Color.Black
+                        ),
+                        shape = RoundedCornerShape(16.dp),
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
+                        modifier = Modifier.height(34.dp).testTag("btn_header_threejs_3d")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ViewInAr,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "3D WebGL 🏰",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
                     IconButton(
                         onClick = { showUserAuthDialog = true },
                         modifier = Modifier.testTag("btn_header_user_auth")
@@ -600,6 +628,41 @@ fun BourgesGuideApp(
         )
     }
 
+    // First-Person Walk Guidance Overlay
+    if (showThreeJS3DView) {
+        val activeRoute = selectedRoute ?: tourRoutes.firstOrNull() ?: TourRoute(
+            id = 1,
+            nameFr = "Découverte de Bourges",
+            nameEn = "Bourges Discovery",
+            nameDe = "Bourges Entdeckung",
+            nameEs = "Descubrimiento de Bourges",
+            nameNl = "Ontdekking van Bourges",
+            descriptionFr = "Parcours découverte",
+            descriptionEn = "Discovery route",
+            descriptionDe = "",
+            descriptionEs = "",
+            descriptionNl = "",
+            siteIds = sites.map { it.id },
+            colorHex = "#C5A059",
+            durationMin = 60
+        )
+        val orderedSites = activeRoute.siteIds.mapNotNull { id -> sites.find { it.id == id } }
+        val currentIdx = orderedSites.indexOfFirst { it.id == selectedSite?.id }.coerceAtLeast(0)
+
+        BourgesFirstPersonWalkView(
+            route = activeRoute,
+            sites = sites,
+            currentStepIndex = currentIdx,
+            onStepSelected = { idx ->
+                orderedSites.getOrNull(idx)?.let { site ->
+                    viewModel.selectSite(site)
+                }
+            },
+            onClose = { showThreeJS3DView = false },
+            modifier = Modifier.fillMaxSize()
+        )
+    }
+
     // User Authentication Dialog
     if (showUserAuthDialog) {
         UserAuthDialog(
@@ -726,6 +789,11 @@ fun DiscoverScreen(
             },
             onPlayArticleClick = { site ->
                 viewModel.startArticleNarration(site)
+            },
+            onLanguageChange = { lCode ->
+                com.example.ui.viewmodel.AppLanguage.values().firstOrNull { it.code.equals(lCode, ignoreCase = true) }?.let {
+                    viewModel.setAudioLanguage(it)
+                }
             }
         )
     } else {
@@ -740,7 +808,7 @@ fun DiscoverScreen(
                     .height(150.dp)
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.img_bourges_hero_1783762752502),
+                    painter = painterResource(id = R.drawable.img_cathedrale),
                     contentDescription = "Bourges",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
@@ -2438,18 +2506,21 @@ fun PoiAdminForm(
     var titleDe by remember { mutableStateOf("") }
     var titleEs by remember { mutableStateOf("") }
     var titleNl by remember { mutableStateOf("") }
+    var titleIt by remember { mutableStateOf("") }
 
     var descriptionFr by remember { mutableStateOf("") }
     var descriptionEn by remember { mutableStateOf("") }
     var descriptionDe by remember { mutableStateOf("") }
     var descriptionEs by remember { mutableStateOf("") }
     var descriptionNl by remember { mutableStateOf("") }
+    var descriptionIt by remember { mutableStateOf("") }
 
     var narrationFr by remember { mutableStateOf("") }
     var narrationEn by remember { mutableStateOf("") }
     var narrationDe by remember { mutableStateOf("") }
     var narrationEs by remember { mutableStateOf("") }
     var narrationNl by remember { mutableStateOf("") }
+    var narrationIt by remember { mutableStateOf("") }
 
     // Map Coordinates
     var latitudeValue by remember { mutableDoubleStateOf(47.0845) }
@@ -2458,9 +2529,9 @@ fun PoiAdminForm(
 
     fun clearPoiFields() {
         selectedSiteToEdit = null
-        titleFr = ""; titleEn = ""; titleDe = ""; titleEs = ""; titleNl = ""
-        descriptionFr = ""; descriptionEn = ""; descriptionDe = ""; descriptionEs = ""; descriptionNl = ""
-        narrationFr = ""; narrationEn = ""; narrationDe = ""; narrationEs = ""; narrationNl = ""
+        titleFr = ""; titleEn = ""; titleDe = ""; titleEs = ""; titleNl = ""; titleIt = ""
+        descriptionFr = ""; descriptionEn = ""; descriptionDe = ""; descriptionEs = ""; descriptionNl = ""; descriptionIt = ""
+        narrationFr = ""; narrationEn = ""; narrationDe = ""; narrationEs = ""; narrationNl = ""; narrationIt = ""
         latitudeValue = 47.0845
         longitudeValue = 2.3960
         category = "CUSTOM"
@@ -2473,18 +2544,21 @@ fun PoiAdminForm(
         titleDe = site.titleDe
         titleEs = site.titleEs
         titleNl = site.titleNl
+        titleIt = site.titleIt
 
         descriptionFr = site.descriptionFr
         descriptionEn = site.descriptionEn
         descriptionDe = site.descriptionDe
         descriptionEs = site.descriptionEs
         descriptionNl = site.descriptionNl
+        descriptionIt = site.descriptionIt
 
         narrationFr = site.narrationFr
         narrationEn = site.narrationEn
         narrationDe = site.narrationDe
         narrationEs = site.narrationEs
         narrationNl = site.narrationNl
+        narrationIt = site.narrationIt
 
         latitudeValue = site.latitude
         longitudeValue = site.longitude
@@ -2713,8 +2787,8 @@ fun PoiAdminForm(
         // Fields inputs with Multi-language tabs selector
         item {
             var activeLangTab by remember { mutableStateOf("FR") }
-            val langTabs = listOf("FR", "EN", "DE", "ES", "NL")
-            val langFlags = mapOf("FR" to "🇫🇷", "EN" to "🇬🇧", "DE" to "🇩🇪", "ES" to "🇪🇸", "NL" to "🇳🇱")
+            val langTabs = listOf("FR", "EN", "DE", "ES", "NL", "IT")
+            val langFlags = mapOf("FR" to "🇫🇷", "EN" to "🇬🇧", "DE" to "🇩🇪", "ES" to "🇪🇸", "NL" to "🇳🇱", "IT" to "🇮🇹")
 
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
@@ -2786,6 +2860,12 @@ fun PoiAdminForm(
                         narr = narrationNl, onNarrChange = { narrationNl = it },
                         labelSuffix = "NL 🇳🇱", langCode = langCode
                     )
+                    "IT" -> LanguageFields(
+                        title = titleIt, onTitleChange = { titleIt = it },
+                        desc = descriptionIt, onDescChange = { descriptionIt = it },
+                        narr = narrationIt, onNarrChange = { narrationIt = it },
+                        labelSuffix = "IT 🇮🇹", langCode = langCode
+                    )
                 }
             }
         }
@@ -2849,7 +2929,8 @@ fun PoiAdminForm(
                             longitude = longitudeValue,
                             titleFr = titleFr, titleEn = titleEn, titleDe = titleDe, titleEs = titleEs, titleNl = titleNl,
                             descriptionFr = descriptionFr, descriptionEn = descriptionEn, descriptionDe = descriptionDe, descriptionEs = descriptionEs, descriptionNl = descriptionNl,
-                            narrationFr = narrationFr, narrationEn = narrationEn, narrationDe = narrationDe, narrationEs = narrationEs, narrationNl = narrationNl
+                            narrationFr = narrationFr, narrationEn = narrationEn, narrationDe = narrationDe, narrationEs = narrationEs, narrationNl = narrationNl,
+                            titleIt = titleIt, descriptionIt = descriptionIt, narrationIt = narrationIt
                         )
                         clearPoiFields()
                     },
@@ -3303,6 +3384,7 @@ fun parseMarkdownToLanguages(markdownText: String): Map<String, Map<String, Stri
                 langCandidate.contains("DE") || langCandidate.contains("GERMAN") || langCandidate.contains("DEUT") -> "DE"
                 langCandidate.contains("ES") || langCandidate.contains("SPANISH") || langCandidate.contains("ESPA") -> "ES"
                 langCandidate.contains("NL") || langCandidate.contains("DUTCH") || langCandidate.contains("NEER") || langCandidate.contains("HOLL") -> "NL"
+                langCandidate.contains("IT") || langCandidate.contains("ITALIAN") || langCandidate.contains("ITAL") -> "IT"
                 else -> null
             }
             currentKey = null

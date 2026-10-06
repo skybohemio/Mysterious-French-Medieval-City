@@ -3,6 +3,7 @@ package com.example.data
 import android.content.Context
 import android.content.Intent
 import androidx.core.content.FileProvider
+import com.example.audio.MultilingualNarrationService
 import java.io.File
 
 object CsvManager {
@@ -139,7 +140,7 @@ object CsvManager {
             val mystery = record.getOrElse(9) { "" }.trim()
             val imgUrl = record.getOrElse(10) { "" }.trim()
 
-            val site = Site(
+            val tempSite = Site(
                 id = id,
                 title = title,
                 description = descFr,
@@ -151,19 +152,60 @@ object CsvManager {
                 audioDurationSec = 300,
                 titleFr = title,
                 titleEn = title,
-                titleDe = title,
-                titleEs = title,
-                titleNl = title,
                 descriptionFr = descFr,
                 descriptionEn = descEn,
-                descriptionDe = descFr,
-                descriptionEs = descFr,
-                descriptionNl = descFr,
                 narrationFr = narrFr,
                 narrationEn = narrEn,
-                narrationDe = narrFr,
-                narrationEs = narrFr,
-                narrationNl = narrFr,
+                mysteryArticle = mystery,
+                imageUrl = imgUrl
+            )
+
+            val finalTitleEn = if (title != descFr) MultilingualNarrationService.getTitle(tempSite, "EN") else title
+            val finalTitleDe = MultilingualNarrationService.getTitle(tempSite, "DE")
+            val finalTitleEs = MultilingualNarrationService.getTitle(tempSite, "ES")
+            val finalTitleNl = MultilingualNarrationService.getTitle(tempSite, "NL")
+            val finalTitleIt = MultilingualNarrationService.getTitle(tempSite, "IT")
+
+            val finalDescEn = if (descEn.isNotBlank() && descEn != descFr) descEn else MultilingualNarrationService.getDescription(tempSite, "EN")
+            val finalDescDe = MultilingualNarrationService.getDescription(tempSite, "DE")
+            val finalDescEs = MultilingualNarrationService.getDescription(tempSite, "ES")
+            val finalDescNl = MultilingualNarrationService.getDescription(tempSite, "NL")
+            val finalDescIt = MultilingualNarrationService.getDescription(tempSite, "IT")
+
+            val finalNarrEn = if (narrEn.isNotBlank() && narrEn != narrFr) narrEn else MultilingualNarrationService.getNarration(tempSite, "EN")
+            val finalNarrDe = MultilingualNarrationService.getNarration(tempSite, "DE")
+            val finalNarrEs = MultilingualNarrationService.getNarration(tempSite, "ES")
+            val finalNarrNl = MultilingualNarrationService.getNarration(tempSite, "NL")
+            val finalNarrIt = MultilingualNarrationService.getNarration(tempSite, "IT")
+
+            val site = Site(
+                id = id,
+                title = title,
+                description = descFr,
+                narrationText = narrFr,
+                latitude = lat,
+                longitude = lng,
+                category = category,
+                isPreset = true,
+                audioDurationSec = 300,
+                titleFr = title,
+                titleEn = finalTitleEn,
+                titleDe = finalTitleDe,
+                titleEs = finalTitleEs,
+                titleNl = finalTitleNl,
+                titleIt = finalTitleIt,
+                descriptionFr = descFr,
+                descriptionEn = finalDescEn,
+                descriptionDe = finalDescDe,
+                descriptionEs = finalDescEs,
+                descriptionNl = finalDescNl,
+                descriptionIt = finalDescIt,
+                narrationFr = narrFr,
+                narrationEn = finalNarrEn,
+                narrationDe = finalNarrDe,
+                narrationEs = finalNarrEs,
+                narrationNl = finalNarrNl,
+                narrationIt = finalNarrIt,
                 mysteryArticle = mystery,
                 imageUrl = imgUrl
             )

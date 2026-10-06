@@ -27,6 +27,7 @@ import com.example.data.Site
 import com.example.data.TourRoute
 import com.example.ui.theme.RegalBlue
 import com.example.ui.theme.SandstoneGold
+import com.example.ui.util.BourgesIllustrationHelper
 import com.example.ui.viewmodel.GuideViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -59,50 +60,18 @@ fun TourRouteCartAndArticleSheet(
                 .verticalScroll(rememberScrollState())
                 .padding(bottom = 36.dp)
         ) {
-            // Hero Curiosity Image
-            Box(
+            val routeImage = BourgesIllustrationHelper.resolveImageForRoute(route)
+            // Hero Curiosity Illustrated Banner
+            IllustratedScrimBox(
+                imageModel = routeImage,
+                contentDescription = route.getLocalizedName(langCode),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(230.dp)
+                    .height(230.dp),
+                topScrimAlpha = 0.40f,
+                middleScrimAlpha = 0.60f,
+                bottomScrimAlpha = 0.90f
             ) {
-                if (route.imageUrl.isNotBlank()) {
-                    AsyncImage(
-                        model = route.imageUrl,
-                        contentDescription = route.getLocalizedName(langCode),
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                Brush.verticalGradient(
-                                    listOf(RegalBlue, Color(0xFF0D1B2A))
-                                )
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Explore,
-                            contentDescription = null,
-                            tint = SandstoneGold,
-                            modifier = Modifier.size(64.dp)
-                        )
-                    }
-                }
-
-                // Gradient overlay
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.85f))
-                            )
-                        )
-                )
-
                 // Price Badge
                 Surface(
                     shape = RoundedCornerShape(20.dp),
@@ -147,29 +116,16 @@ fun TourRouteCartAndArticleSheet(
                     Spacer(modifier = Modifier.height(4.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            imageVector = Icons.Default.Schedule,
+                            imageVector = Icons.Default.AccessTime,
                             contentDescription = null,
                             tint = SandstoneGold,
-                            modifier = Modifier.size(16.dp)
+                            modifier = Modifier.size(14.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "${route.durationMin} min",
-                            color = Color.White.copy(alpha = 0.9f),
-                            fontSize = 13.sp
-                        )
-                        Spacer(modifier = Modifier.width(14.dp))
-                        Icon(
-                            imageVector = Icons.Default.Place,
-                            contentDescription = null,
-                            tint = SandstoneGold,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "${routeSites.size} curiosités",
-                            color = Color.White.copy(alpha = 0.9f),
-                            fontSize = 13.sp
+                            text = "${route.durationMin} min • ${route.siteIds.size} étapes",
+                            fontSize = 12.sp,
+                            color = Color.White.copy(alpha = 0.9f)
                         )
                     }
                 }
@@ -286,17 +242,23 @@ fun TourRouteCartAndArticleSheet(
                             Spacer(modifier = Modifier.width(12.dp))
 
                             // Site thumbnail if exists
-                            if (site.imageUrl.isNotBlank()) {
-                                AsyncImage(
-                                    model = site.imageUrl,
+                            // Site illustrated thumbnail
+                            val stepImage = BourgesIllustrationHelper.resolveImageForSite(site)
+                            Box(
+                                modifier = Modifier
+                                    .size(44.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                            ) {
+                                IllustratedScrimBox(
+                                    imageModel = stepImage,
                                     contentDescription = site.getLocalizedTitle(langCode),
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier
-                                        .size(42.dp)
-                                        .clip(RoundedCornerShape(8.dp))
-                                )
-                                Spacer(modifier = Modifier.width(12.dp))
+                                    modifier = Modifier.fillMaxSize(),
+                                    topScrimAlpha = 0.10f,
+                                    middleScrimAlpha = 0.20f,
+                                    bottomScrimAlpha = 0.45f
+                                ) {}
                             }
+                            Spacer(modifier = Modifier.width(12.dp))
 
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(

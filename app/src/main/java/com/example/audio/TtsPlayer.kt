@@ -1,6 +1,7 @@
 package com.example.audio
 
 import android.content.Context
+import android.content.res.AssetFileDescriptor
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.os.Build
@@ -40,10 +41,20 @@ class TtsPlayer(private val context: Context) : TextToSpeech.OnInitListener {
     private val _isFemaleVoice = MutableStateFlow(true)
     val isFemaleVoice: StateFlow<Boolean> = _isFemaleVoice
 
+    // Default to 100% Offline Audio as requested: Zero data usage, instant local narration
+    private val _isOfflineAudioPreferred = MutableStateFlow(true)
+    val isOfflineAudioPreferred: StateFlow<Boolean> = _isOfflineAudioPreferred
+
+    fun setOfflineAudioPreferred(enabled: Boolean) {
+        _isOfflineAudioPreferred.value = enabled
+        Log.i("TtsPlayer", "Offline audio mode set to: $enabled")
+    }
+
     private var speechRate = 1.0f
     private var pitch = 1.0f
     private var activeUtteranceId = ""
     private var activeLanguageCode = "FR"
+    private var pendingSpeechText: String? = null
 
     // OkHttpClient with optimized connection for streaming TTS
     private val okHttpClient = OkHttpClient.Builder()
@@ -80,10 +91,16 @@ class TtsPlayer(private val context: Context) : TextToSpeech.OnInitListener {
             setupProgressListener()
             isTtsInitialized = true
             tts?.setSpeechRate(speechRate)
-            tts?.setPitch(pitch)
-            Log.i("TtsPlayer", "Hardware TextToSpeech fallback successfully initialized.")
+            val basePitch = if (_isFemaleVoice.value) 1.12f else 0.88f
+            tts?.setPitch(basePitch * pitch)
+            Log.i("TtsPlayer", "Offline TextToSpeech engine successfully initialized.")
+
+            pendingSpeechText?.let { pending ->
+                pendingSpeechText = null
+                fallbackToLocalAndroidTts(pending)
+            }
         } else {
-            Log.w("TtsPlayer", "Initialization of local fallback TextToSpeech returned status $status")
+            Log.w("TtsPlayer", "Initialization of local TextToSpeech returned status $status")
         }
     }
 
@@ -94,6 +111,7 @@ class TtsPlayer(private val context: Context) : TextToSpeech.OnInitListener {
             "DE" -> Locale.GERMAN
             "ES" -> Locale("es", "ES")
             "NL" -> Locale("nl", "NL")
+            "IT" -> Locale.ITALIAN
             else -> Locale.FRENCH
         }
     }
@@ -114,16 +132,30 @@ class TtsPlayer(private val context: Context) : TextToSpeech.OnInitListener {
 
     private fun updateLocalVoice(locale: Locale) {
         try {
+            val isFemale = _isFemaleVoice.value
+            val basePitch = if (isFemale) 1.12f else 0.88f
+            tts?.setPitch(basePitch * pitch)
+
             val voices = tts?.voices ?: return
             val matching = voices.filter { it.locale.language.equals(locale.language, ignoreCase = true) }
             if (matching.isNotEmpty()) {
-                val isFemale = _isFemaleVoice.value
                 val preferredVoice = matching.firstOrNull { voice ->
                     val name = voice.name.lowercase()
-                    if (isFemale) (name.contains("female") || name.contains("fra") || name.contains("fr-fr-x-fra"))
-                    else (name.contains("male") || name.contains("frb") || name.contains("fr-fr-x-frb"))
-                } ?: matching.maxByOrNull { it.quality } ?: matching.first()
-                tts?.voice = preferredVoice
+                    if (isFemale) {
+                        name.contains("female") || name.contains("-fem-") || name.contains("fra") ||
+                        name.contains("sfg") || name.contains("eed") || name.contains("deg") ||
+                        name.contains("itb") || name.contains("nla") || name.contains("woman") ||
+                        name.contains("carla") || name.contains("elvira") || name.contains("katja")
+                    } else {
+                        name.contains("male") || name.contains("-mal-") || name.contains("frb") ||
+                        name.contains("iol") || name.contains("eef") || name.contains("deb") ||
+                        name.contains("ita") || name.contains("nlb") || name.contains("man") ||
+                        name.contains("giorgio") || name.contains("alvaro") || name.contains("kilian")
+                    }
+                } ?: if (isFemale) matching.firstOrNull() else matching.lastOrNull() ?: matching.first()
+                if (preferredVoice != null) {
+                    tts?.voice = preferredVoice
+                }
             }
         } catch (e: Exception) {
             Log.w("TtsPlayer", "Could not customize local voice", e)
@@ -164,23 +196,99 @@ class TtsPlayer(private val context: Context) : TextToSpeech.OnInitListener {
         })
     }
 
-    fun speak(text: String) {
+    fun speak(text: String, siteId: Int? = null, langCode: String? = null) {
         stop()
         val cleanText = text.trim()
         if (cleanText.isEmpty()) return
 
+        if (!langCode.isNullOrBlank()) {
+            activeLanguageCode = langCode.uppercase()
+        }
+
         _currentText.value = cleanText
         activeUtteranceId = "utterance_" + System.currentTimeMillis()
 
-        // 1. Try High-Quality Cloud Audio Engine first (Google Neural Speech)
-        synthesisJob = coroutineScope.launch {
-            val success = synthesizeAndPlayCloudTts(cleanText, activeLanguageCode)
-            if (!success) {
-                Log.i("TtsPlayer", "Cloud TTS unavailable, switching to local Android TextToSpeech engine")
-                withContext(Dispatchers.Main) {
-                    fallbackToLocalAndroidTts(cleanText)
+        // 1. Check if a pre-bundled studio audio file exists in assets for this landmark site & language!
+        if (siteId != null) {
+            val langSub = activeLanguageCode.lowercase()
+            val candidateAsset = "audio/site_${siteId}_${langSub}.mp3"
+            try {
+                val afd = context.assets.openFd(candidateAsset)
+                Log.i("TtsPlayer", "Playing bundled offline studio audio: $candidateAsset")
+                playAssetAudioFile(afd, cleanText)
+                return
+            } catch (_: Exception) {
+                // Not pre-bundled as standalone mp3, proceed with offline Android TTS
+            }
+        }
+
+        if (_isOfflineAudioPreferred.value) {
+            // OFFLINE AUDIO BY DEFAULT: Instant, reliable local Android TTS with zero internet latency
+            Log.i("TtsPlayer", "Playing audio in offline mode using local Android TTS (Language: $activeLanguageCode)")
+            fallbackToLocalAndroidTts(cleanText)
+        } else {
+            // Optional Online HD Cloud TTS
+            synthesisJob = coroutineScope.launch {
+                val success = synthesizeAndPlayCloudTts(cleanText, activeLanguageCode)
+                if (!success) {
+                    Log.i("TtsPlayer", "Cloud TTS unavailable, falling back to local Android TextToSpeech engine")
+                    withContext(Dispatchers.Main) {
+                        fallbackToLocalAndroidTts(cleanText)
+                    }
                 }
             }
+        }
+    }
+
+    private fun playAssetAudioFile(afd: AssetFileDescriptor, text: String) {
+        stopAudioPlaybackOnly()
+        try {
+            val player = MediaPlayer().apply {
+                setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                        .setUsage(AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE)
+                        .build()
+                )
+                setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
+                prepare()
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                try {
+                    val params = player.playbackParams
+                    params.speed = speechRate.coerceIn(0.5f, 2.0f)
+                    params.pitch = pitch.coerceIn(0.5f, 2.0f)
+                    player.playbackParams = params
+                } catch (e: Exception) {
+                    Log.w("TtsPlayer", "PlaybackParams adjustment note: ${e.message}")
+                }
+            }
+
+            player.setOnCompletionListener {
+                _isPlaying.value = false
+                _progress.value = 1f
+                _currentWordRange.value = Pair(0, 0)
+                stopProgressTracking()
+            }
+
+            player.setOnErrorListener { _, what, extra ->
+                Log.w("TtsPlayer", "Asset MediaPlayer error: what=$what extra=$extra")
+                _isPlaying.value = false
+                stopProgressTracking()
+                fallbackToLocalAndroidTts(text)
+                true
+            }
+
+            mediaPlayer = player
+            player.start()
+            _isPlaying.value = true
+
+            val durationMs = player.duration.coerceAtLeast(1000)
+            startAccurateProgressTracking(text, durationMs)
+        } catch (e: Exception) {
+            Log.e("TtsPlayer", "Failed to start Asset MediaPlayer", e)
+            fallbackToLocalAndroidTts(text)
         }
     }
 
@@ -196,6 +304,7 @@ class TtsPlayer(private val context: Context) : TextToSpeech.OnInitListener {
                     "DE" -> "de"
                     "ES" -> "es"
                     "NL" -> "nl"
+                    "IT" -> "it"
                     else -> "fr"
                 }
 
@@ -292,6 +401,10 @@ class TtsPlayer(private val context: Context) : TextToSpeech.OnInitListener {
     }
 
     private fun fallbackToLocalAndroidTts(text: String) {
+        val wordsCount = text.split("\\s+".toRegex()).size
+        val estDurationMs = (wordsCount * 260 / speechRate).toInt().coerceAtLeast(1500)
+        startAccurateProgressTracking(text, estDurationMs)
+
         if (isTtsInitialized && tts != null) {
             val params = Bundle().apply {
                 putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, activeUtteranceId)
@@ -300,17 +413,16 @@ class TtsPlayer(private val context: Context) : TextToSpeech.OnInitListener {
             val locale = getLocaleForCode(activeLanguageCode)
             tts?.setLanguage(locale)
             tts?.setSpeechRate(speechRate)
-            tts?.setPitch(pitch)
             updateLocalVoice(locale)
 
             val result = tts?.speak(text, TextToSpeech.QUEUE_FLUSH, params, activeUtteranceId)
             if (result == TextToSpeech.ERROR) {
                 Log.w("TtsPlayer", "Local TTS speak error, using visual reading simulator")
-                startVirtualOnlySimulation(text)
             }
         } else {
-            Log.i("TtsPlayer", "Local TTS not yet ready, using visual reading simulator")
-            startVirtualOnlySimulation(text)
+            Log.i("TtsPlayer", "Local TTS initializing, queued pending speech")
+            pendingSpeechText = text
+            _isPlaying.value = true
         }
     }
 
@@ -543,13 +655,16 @@ class TtsPlayer(private val context: Context) : TextToSpeech.OnInitListener {
 
     fun getVoiceName(langCode: String): String {
         val isFemale = _isFemaleVoice.value
-        return when (langCode.uppercase()) {
-            "FR" -> if (isFemale) "Google Français (Haute Définition)" else "Google Français Studio (Homme)"
-            "EN" -> if (isFemale) "Google English (High Quality Female)" else "Google English (Male)"
-            "DE" -> if (isFemale) "Google Deutsch (Katja Studio)" else "Google Deutsch (Killian)"
-            "ES" -> if (isFemale) "Google Español (Elvira Studio)" else "Google Español (Alvaro)"
-            "NL" -> if (isFemale) "Google Nederlands (Colette)" else "Google Nederlands (Maarten)"
-            else -> if (isFemale) "Google Français (Haute Définition)" else "Google Français Studio (Homme)"
+        val prefix = if (_isOfflineAudioPreferred.value) "⚡ Hors-Ligne • " else "☁️ HD • "
+        val voiceName = when (langCode.uppercase()) {
+            "FR" -> if (isFemale) "Voix Française (Naturelle)" else "Voix Française (Studio Homme)"
+            "EN" -> if (isFemale) "English Voice (Natural Female)" else "English Voice (Male)"
+            "DE" -> if (isFemale) "Deutsche Stimme (Katja)" else "Deutsche Stimme (Kilian)"
+            "ES" -> if (isFemale) "Voz Española (Elvira)" else "Voz Española (Álvaro)"
+            "NL" -> if (isFemale) "Nederlandse Stem (Colette)" else "Nederlandse Stem (Maarten)"
+            "IT" -> if (isFemale) "Voce Italiana (Carla)" else "Voce Italiana (Giorgio)"
+            else -> if (isFemale) "Voix Locale (Femme)" else "Voix Locale (Homme)"
         }
+        return prefix + voiceName
     }
 }

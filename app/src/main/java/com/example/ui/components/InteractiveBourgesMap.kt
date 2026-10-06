@@ -13,6 +13,9 @@ import androidx.compose.material.icons.filled.ZoomIn
 import androidx.compose.material.icons.filled.ZoomOut
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Navigation
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DirectionsWalk
+import androidx.compose.material.icons.filled.ViewInAr
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -44,7 +47,9 @@ import androidx.compose.ui.unit.sp
 import com.example.data.Site
 import com.example.data.TourRoute
 import com.example.ui.theme.RegalBlue
+import com.example.ui.theme.SandstoneGold
 import kotlinx.coroutines.launch
+import kotlin.math.max
 import kotlin.math.sqrt
 
 // Representation of a scenic viewpoint spot
@@ -261,12 +266,16 @@ fun InteractiveBourgesMap(
     cachedTiles: List<com.example.data.OfflineMapData> = emptyList(),
     isOfflineMapEnabled: Boolean = true,
     onCacheOfflineMapClick: (() -> Unit)? = null,
-    onToggleOfflineMap: ((Boolean) -> Unit)? = null
+    onToggleOfflineMap: ((Boolean) -> Unit)? = null,
+    onClearRoute: (() -> Unit)? = null
 ) {
     var isOpenStreetMapMode by remember { mutableStateOf(true) }
+    var is3DBuildingsEnabled by remember { mutableStateOf(true) }
     var zoomLevel by remember { mutableFloatStateOf(1.0f) }
     var panOffset by remember { mutableStateOf(Offset.Zero) }
     var selectedViewPoint by remember { mutableStateOf<MapViewPoint?>(null) }
+    var isSubjective3DActive by remember { mutableStateOf(false) }
+    var current3DStepIndex by remember(selectedRoute?.id) { mutableIntStateOf(0) }
 
     val infiniteTransition = rememberInfiniteTransition(label = "Pulse")
     val pulseAlpha by infiniteTransition.animateFloat(
@@ -315,6 +324,7 @@ fun InteractiveBourgesMap(
                 userLocation = userLocation,
                 onMyLocationClick = onMyLocationClick,
                 onMapTapped = onMapTapped,
+                is3DBuildingsEnabled = is3DBuildingsEnabled,
                 modifier = Modifier.fillMaxSize()
             )
         } else {
@@ -770,6 +780,30 @@ fun InteractiveBourgesMap(
             horizontalAlignment = Alignment.End,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            // 3D Immersive View Button
+            Button(
+                onClick = { isSubjective3DActive = true },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = SandstoneGold,
+                    contentColor = Color.Black
+                ),
+                shape = RoundedCornerShape(12.dp),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                modifier = Modifier.testTag("launch_3d_view_button")
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ViewInAr,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = "Vue 3D 🏰",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
             // My Location Button
             if (onMyLocationClick != null) {
                 IconButton(
@@ -869,6 +903,38 @@ fun InteractiveBourgesMap(
                 }
             }
 
+            if (isOpenStreetMapMode) {
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
+                    shadowElevation = 2.dp
+                ) {
+                    FilterChip(
+                        selected = is3DBuildingsEnabled,
+                        onClick = { is3DBuildingsEnabled = !is3DBuildingsEnabled },
+                        label = { Text("🏢 Bâtiments 3D", fontSize = 10.sp, fontWeight = FontWeight.Bold) },
+                        modifier = Modifier.height(26.dp).padding(horizontal = 2.dp)
+                    )
+                }
+            }
+
+            Surface(
+                shape = RoundedCornerShape(6.dp),
+                color = SandstoneGold,
+                contentColor = Color.Black,
+                modifier = Modifier.testTag("map_pois_count_badge")
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "📍 ${sites.size} POIs (CSV)",
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 10.sp)
+                    )
+                }
+            }
+
             val cacheSizeKb = cachedTiles.sumOf { it.sizeBytes } / 1024
             Surface(
                 shape = RoundedCornerShape(6.dp),
@@ -899,6 +965,149 @@ fun InteractiveBourgesMap(
             }
         }
     }
+
+    // Active Route Guidance HUD (Top Center)
+    if (selectedRoute != null) {
+        val orderedSites = selectedRoute.siteIds.mapNotNull { id -> sites.find { it.id == id } }
+        val activeStepSite = orderedSites.getOrNull(current3DStepIndex.coerceIn(0, max(0, orderedSites.size - 1)))
+
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = Color(0xFF0F1E36).copy(alpha = 0.96f),
+            shadowElevation = 8.dp,
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .fillMaxWidth()
+                .border(1.5.dp, SandstoneGold.copy(alpha = 0.8f), RoundedCornerShape(16.dp))
+        ) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = SandstoneGold,
+                        modifier = Modifier.size(28.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text(
+                                text = "${current3DStepIndex + 1}",
+                                fontWeight = FontWeight.ExtraBold,
+                                fontSize = 14.sp,
+                                color = Color.Black
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(10.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = selectedRoute.nameFr,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = SandstoneGold,
+                            maxLines = 1
+                        )
+                        Text(
+                            text = activeStepSite?.title ?: "Étape ${current3DStepIndex + 1}",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            maxLines = 1
+                        )
+                    }
+
+                    // 3D Subjective View Button
+                    Button(
+                        onClick = { isSubjective3DActive = true },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = SandstoneGold,
+                            contentColor = Color.Black
+                        ),
+                        shape = RoundedCornerShape(10.dp),
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                        modifier = Modifier.height(34.dp)
+                    ) {
+                        Text(
+                            text = "Vue 3D 🧭",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.ExtraBold
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(6.dp))
+
+                    IconButton(
+                        onClick = { onClearRoute?.invoke() },
+                        modifier = Modifier.size(30.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Quitter le parcours",
+                            tint = Color.White.copy(alpha = 0.8f),
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(6.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextButton(
+                        onClick = {
+                            if (current3DStepIndex > 0) {
+                                current3DStepIndex--
+                                orderedSites.getOrNull(current3DStepIndex)?.let { onSiteSelected(it) }
+                            }
+                        },
+                        enabled = current3DStepIndex > 0,
+                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp)
+                    ) {
+                        Text("⏮️ Étape préc.", fontSize = 11.sp, color = if (current3DStepIndex > 0) SandstoneGold else Color.Gray)
+                    }
+
+                    Text(
+                        text = "Étape ${current3DStepIndex + 1} / ${orderedSites.size}",
+                        fontSize = 11.sp,
+                        color = Color.White.copy(alpha = 0.9f),
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    TextButton(
+                        onClick = {
+                            if (current3DStepIndex < orderedSites.size - 1) {
+                                current3DStepIndex++
+                                orderedSites.getOrNull(current3DStepIndex)?.let { onSiteSelected(it) }
+                            }
+                        },
+                        enabled = current3DStepIndex < orderedSites.size - 1,
+                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp)
+                    ) {
+                        Text("Étape suiv. ⏭️", fontSize = 11.sp, color = if (current3DStepIndex < orderedSites.size - 1) SandstoneGold else Color.Gray)
+                    }
+                }
+            }
+        }
+    }
+
+    // Full-Screen True 3D WebGL Three.js Engine Overlay
+    if (isSubjective3DActive) {
+        BourgesThreeJS3DView(
+            onClose = { isSubjective3DActive = false },
+            onBuildingSelected = { bldgName ->
+                // Optionally select corresponding site if found
+                sites.find { it.title.contains(bldgName, ignoreCase = true) || bldgName.contains(it.title, ignoreCase = true) }?.let { site ->
+                    onSiteSelected(site)
+                }
+            },
+            modifier = Modifier.fillMaxSize()
+        )
+    }
 }
 
 @Composable
@@ -910,7 +1119,8 @@ fun OsmMapViewContent(
     modifier: Modifier = Modifier,
     userLocation: Pair<Double, Double>? = null,
     onMyLocationClick: (() -> Unit)? = null,
-    onMapTapped: ((Double, Double) -> Unit)? = null
+    onMapTapped: ((Double, Double) -> Unit)? = null,
+    is3DBuildingsEnabled: Boolean = true
 ) {
     val context = LocalContext.current
     var mapViewRef by remember { mutableStateOf<MapView?>(null) }
@@ -921,6 +1131,8 @@ fun OsmMapViewContent(
         TileSourceFactory.USGS_SAT to "Satellite 🛰️",
         TileSourceFactory.USGS_TOPO to "Relief ⛰️"
     )
+
+    var lastFittedRouteId by remember { mutableStateOf<Int?>(null) }
 
     val bourgesCenter = GeoPoint(47.0810, 2.3980)
 
@@ -976,57 +1188,123 @@ fun OsmMapViewContent(
                     mapView.overlays.add(eventsOverlay)
                 }
 
-                // Selected Route Polyline
+
+                // Selected Route Polyline & Markers
                 if (selectedRoute != null) {
-                    val pathPoints = getStreetPathPoints(selectedRoute.id, sites)
+                    val orderedRouteSites = selectedRoute.siteIds.mapNotNull { id -> sites.find { it.id == id } }
+                    val pathPoints = getStreetPathPoints(selectedRoute.id, orderedRouteSites)
                     val geoPoints = pathPoints.map { GeoPoint(it.first, it.second) }
-                    val polyline = Polyline(mapView).apply {
-                        setPoints(geoPoints)
-                        outlinePaint.color = android.graphics.Color.parseColor("#D4AF37")
-                        outlinePaint.strokeWidth = 12f
-                    }
-                    mapView.overlays.add(polyline)
-                }
 
-                // Scenic Viewpoints Markers
-                bestViewPoints.forEach { vp ->
-                    val vpPoint = GeoPoint(vp.latitude, vp.longitude)
-                    val marker = Marker(mapView).apply {
-                        position = vpPoint
-                        title = vp.titleFr
-                        snippet = vp.descriptionFr
-                        icon = MapMarkerFactory.getViewPointMarker(context)
-                        setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                        setOnMarkerClickListener { _, _ ->
-                            val assoc = sites.find { s -> s.id == vp.associatedSiteId }
-                            if (assoc != null) {
-                                onSiteSelected(assoc)
+                    if (geoPoints.isNotEmpty()) {
+                        val glowPolyline = Polyline(mapView).apply {
+                            setPoints(geoPoints)
+                            outlinePaint.color = android.graphics.Color.parseColor("#990B192C")
+                            outlinePaint.strokeWidth = 22f
+                        }
+                        mapView.overlays.add(glowPolyline)
+
+                        val polyline = Polyline(mapView).apply {
+                            setPoints(geoPoints)
+                            outlinePaint.color = android.graphics.Color.parseColor("#FFD54F")
+                            outlinePaint.strokeWidth = 12f
+                        }
+                        mapView.overlays.add(polyline)
+
+                        if (lastFittedRouteId != selectedRoute.id && geoPoints.size >= 2) {
+                            lastFittedRouteId = selectedRoute.id
+                            try {
+                                val bbox = org.osmdroid.util.BoundingBox.fromGeoPoints(geoPoints)
+                                mapView.post {
+                                    mapView.zoomToBoundingBox(bbox.increaseByScale(1.35f), true, 100)
+                                }
+                            } catch (e: Exception) {
+                                // fallback
                             }
-                            true
                         }
                     }
-                    mapView.overlays.add(marker)
-                }
 
-                // Sites Markers
-                sites.forEach { site ->
-                    val sitePoint = GeoPoint(site.latitude, site.longitude)
-                    val isSelected = site.id == selectedSite?.id
-                    val marker = Marker(mapView).apply {
-                        position = sitePoint
-                        title = site.title
-                        snippet = site.category
-                        icon = MapMarkerFactory.getSiteMarker(context, site.category, isSelected)
-                        setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                        if (isSelected) {
-                            showInfoWindow()
+                    // Non-route sites rendered as dimmed dots
+                    val nonRouteSites = sites.filter { site -> !selectedRoute.siteIds.contains(site.id) }
+                    nonRouteSites.forEach { site ->
+                        val sitePoint = GeoPoint(site.latitude, site.longitude)
+                        val marker = Marker(mapView).apply {
+                            position = sitePoint
+                            title = site.title
+                            snippet = site.category
+                            icon = MapMarkerFactory.getDimmedSiteMarker(context)
+                            setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+                            setOnMarkerClickListener { _, _ ->
+                                onSiteSelected(site)
+                                true
+                            }
                         }
-                        setOnMarkerClickListener { _, _ ->
-                            onSiteSelected(site)
-                            true
-                        }
+                        mapView.overlays.add(marker)
                     }
-                    mapView.overlays.add(marker)
+
+                    // Route sites rendered as numbered step pins (1, 2, 3...)
+                    orderedRouteSites.forEachIndexed { index, site ->
+                        val stepNumber = index + 1
+                        val sitePoint = GeoPoint(site.latitude, site.longitude)
+                        val isSelected = (site.id == selectedSite?.id)
+                        val marker = Marker(mapView).apply {
+                            position = sitePoint
+                            title = "Étape $stepNumber : ${site.title}"
+                            snippet = site.category
+                            icon = MapMarkerFactory.getRouteStepMarker(context, stepNumber, isSelected)
+                            setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                            if (isSelected) {
+                                showInfoWindow()
+                            }
+                            setOnMarkerClickListener { _, _ ->
+                                onSiteSelected(site)
+                                true
+                            }
+                        }
+                        mapView.overlays.add(marker)
+                    }
+                } else {
+                    lastFittedRouteId = null
+
+                    // Scenic Viewpoints Markers
+                    bestViewPoints.forEach { vp ->
+                        val vpPoint = GeoPoint(vp.latitude, vp.longitude)
+                        val marker = Marker(mapView).apply {
+                            position = vpPoint
+                            title = vp.titleFr
+                            snippet = vp.descriptionFr
+                            icon = MapMarkerFactory.getViewPointMarker(context)
+                            setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                            setOnMarkerClickListener { _, _ ->
+                                val assoc = sites.find { s -> s.id == vp.associatedSiteId }
+                                if (assoc != null) {
+                                    onSiteSelected(assoc)
+                                }
+                                true
+                            }
+                        }
+                        mapView.overlays.add(marker)
+                    }
+
+                    // Sites Markers
+                    sites.forEach { site ->
+                        val sitePoint = GeoPoint(site.latitude, site.longitude)
+                        val isSelected = site.id == selectedSite?.id
+                        val marker = Marker(mapView).apply {
+                            position = sitePoint
+                            title = site.title
+                            snippet = site.category
+                            icon = MapMarkerFactory.getSiteMarker(context, site.category, isSelected)
+                            setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                            if (isSelected) {
+                                showInfoWindow()
+                            }
+                            setOnMarkerClickListener { _, _ ->
+                                onSiteSelected(site)
+                                true
+                            }
+                        }
+                        mapView.overlays.add(marker)
+                    }
                 }
 
                 // User Location Marker

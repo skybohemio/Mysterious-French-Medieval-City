@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Bourges 3D WebGL Engine</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #0b1329;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        #hud {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            right: 16px;
+            z-index: 10;
+            background: rgba(15, 30, 54, 0.92);
+            border: 1.5px solid #D4AF37;
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: white;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+        }
+        h1 {
+            font-size: 15px;
+            margin: 0 0 4px 0;
+            color: #D4AF37;
+        }
+        p {
+            font-size: 11px;
+            margin: 0;
+            color: #CBD5E1;
+        }
+        .controls {
+            position: absolute;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            background: #D4AF37;
+            color: #0b1329;
+            border: none;
+            padding: 10px 16px;
+            font-weight: bold;
+            font-size: 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+        }
+        .btn:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+    <div id="hud">
+        <h1 id="title">🏰 Bourges Médiéval 3D WebGL</h1>
+        <p id="desc">Glissez pour pivoter • Pincez/molette pour zoomer • Touchez un monument</p>
+    </div>
+
+    <div class="controls">
+        <button class="btn" onclick="resetView()">🧭 Vue Générale</button>
+        <button class="btn" onclick="nextTour()">🏛️ Visite Guidée</button>
+    </div>
+
+    <canvas id="webgl-canvas"></canvas>
+
+    <script>
+        // Self-contained high-performance WebGL 3D Engine for Bourges
+        const canvas = document.getElementById('webgl-canvas');
+        const gl = canvas.getContext('webgl', { antialias: true });
+
+        if (!gl) {
+            alert('WebGL non supporté sur cet appareil');
+        }
+
+        // Shader sources
+        const vsSource = `
+            attribute vec4 aPosition;
+            attribute vec3 aNormal;
+            attribute vec3 aColor;
+            uniform mat4 uModelViewMatrix;
+            uniform mat4 uProjectionMatrix;
+            varying vec3 vLighting;
+            void main() {
+                gl_Position = uProjectionMatrix * uModelViewMatrix * aPosition;
+                vec3 lightDir = normalize(vec3(0.5, 1.0, 0.7));
+                float ambient = 0.4;
+                float diff = max(dot(aNormal, lightDir), 0.0);
+                vLighting = aColor * (ambient + diff * 0.6);
+            }
+        `;
+
+        const fsSource = `
+            precision mediump float;
+            varying vec3 vLighting;
+            void main() {
+                gl_FragColor = vec4(vLighting, 1.0);
+            }
+        `;
+
+        function createShader(gl, type, source) {
+            const shader = gl.createShader(type);
+            gl.shaderSource(shader, source);
+            gl.compileShader(shader);
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                console.error('Shader compile error:', gl.getShaderInfoLog(shader));
+                gl.deleteShader(shader);
+                return null;
+            }
+            return shader;
+        }
+
+        const vertexShader = createShader(gl, gl.VERTEX_SHADER, vsSource);
+        const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fsSource);
+        const shaderProgram = gl.createProgram();
+        gl.attachShader(shaderProgram, vertexShader);
+        gl.attachShader(shaderProgram, fragmentShader);
+        gl.linkProgram(shaderProgram);
+
+        const programInfo = {
+            program: shaderProgram,
+            attribLocations: {
+                position: gl.getAttribLocation(shaderProgram, 'aPosition'),
+                normal: gl.getAttribLocation(shaderProgram, 'aNormal'),
+                color: gl.getAttribLocation(shaderProgram, 'aColor'),
+            },
+            uniformLocations: {
+                projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
+                modelViewMatrix: gl.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
+            },
+        };
+
+        // Building data structures with exact 3D dimensions and colors
+        const buildings = [
+            { name: "Cathédrale Saint-Étienne", x: 0, z: 0, w: 20, h: 32, d: 38, color: [0.83, 0.76, 0.65], roofColor: [0.66, 0.22, 0.11] },
+            { name: "Palais Jacques Cœur", x: -30, z: 25, w: 22, h: 18, d: 22, color: [0.78, 0.69, 0.56], roofColor: [0.59, 0.20, 0.10] },
+            { name: "Hôtel Lallemant", x: 25, z: -25, w: 16, h: 14, d: 16, color: [0.87, 0.81, 0.72], roofColor: [0.66, 0.22, 0.11] },
+            { name: "Tour des Échevins", x: 12, z: -12, w: 10, h: 16, d: 10, color: [0.83, 0.76, 0.65], roofColor: [0.54, 0.17, 0.06] },
+            { name: "Église Saint-Bonnet", x: 35, z: 35, w: 18, h: 18, d: 26, color: [0.80, 0.73, 0.60], roofColor: [0.66, 0.22, 0.11] },
+            { name: "Hôtel Cujas", x: -20, z: -25, w: 18, h: 14, d: 18, color: [0.83, 0.76, 0.65], roofColor: [0.59, 0.20, 0.10] },
+            { name: "Maisons à pans de bois (Place Gordaine)", x: -10, z: 30, w: 14, h: 11, d: 20, color: [0.44, 0.26, 0.08], roofColor: [0.66, 0.22, 0.11] }
+        ];
+
+        // Generate geometry buffers for a box with normals and vertex colors
+        function createBoxGeometry(w, h, d, c, rc) {
+            const hw = w / 2, hd = d / 2;
+            const r = c[0], g = c[1], b = c[2];
+            const rr = rc[0], rg = rc[1], rb = rc[2];
+
+            // Positions, normals, colors
+            const vertices = [
+                // Front Wall
+                -hw, 0, hd,  0, 0, 1,  r, g, b,
+                 hw, 0, hd,  0, 0, 1,  r, g, b,
+                 hw, h, hd,  0, 0, 1,  r, g, b,
+                -hw, 0, hd,  0, 0, 1,  r, g, b,
+                 hw, h, hd,  0, 0, 1,  r, g, b,
+                -hw, h, hd,  0, 0, 1,  r, g, b,
+                // Back Wall
+                -hw, 0, -hd,  0, 0, -1,  r*0.9, g*0.9, b*0.9,
+                -hw, h, -hd,  0, 0, -1,  r*0.9, g*0.9, b*0.9,
+                 hw, h, -hd,  0, 0, -1,  r*0.9, g*0.9, b*0.9,
+                -hw, 0, -hd,  0, 0, -1,  r*0.9, g*0.9, b*0.9,
+                 hw, h, -hd,  0, 0, -1,  r*0.9, g*0.9, b*0.9,
+                 hw, 0, -hd,  0, 0, -1,  r*0.9, g*0.9, b*0.9,
+                // Left Wall
+                -hw, 0, -hd,  -1, 0, 0,  r*0.8, g*0.8, b*0.8,
+                -hw, 0,  hd,  -1, 0, 0,  r*0.8, g*0.8, b*0.8,
+                -hw, h,  hd,  -1, 0, 0,  r*0.8, g*0.8, b*0.8,
+                -hw, 0, -hd,  -1, 0, 0,  r*0.8, g*0.8, b*0.8,
+                -hw, h,  hd,  -1, 0, 0,  r*0.8, g*0.8, b*0.8,
+                -hw, h, -hd,  -1, 0, 0,  r*0.8, g*0.8, b*0.8,
+                // Right Wall
+                 hw, 0, -hd,   1, 0, 0,  r*0.85, g*0.85, b*0.85,
+                 hw, h,  hd,   1, 0, 0,  r*0.85, g*0.85, b*0.85,
+                 hw, 0,  hd,   1, 0, 0,  r*0.85, g*0.85, b*0.85,
+                 hw, 0, -hd,   1, 0, 0,  r*0.85, g*0.85, b*0.85,
+                 hw, h, -hd,   1, 0, 0,  r*0.85, g*0.85, b*0.85,
+                 hw, h,  hd,   1, 0, 0,  r*0.85, g*0.85, b*0.85,
+                // Roof (Pyramid)
+                0, h + h*0.4, 0,   0, 1, 0,  rr, rg, rb,
+               -hw, h,  hd,   0, 1, 0,  rr, rg, rb,
+                hw, h,  hd,   0, 1, 0,  rr, rg, rb,
+
+                0, h + h*0.4, 0,   0, 1, 0,  rr, rg, rb,
+                hw, h,  hd,   0, 1, 0,  rr, rg, rb,
+                hw, h, -hd,   0, 1, 0,  rr, rg, rb,
+
+                0, h + h*0.4, 0,   0, 1, 0,  rr, rg, rb,
+                hw, h, -hd,   0, 1, 0,  rr, rg, rb,
+               -hw, h, -hd,   0, 1, 0,  rr, rg, rb,
+
+                0, h + h*0.4, 0,   0, 1, 0,  rr, rg, rb,
+               -hw, h, -hd,   0, 1, 0,  rr, rg, rb,
+               -hw, h,  hd,   0, 1, 0,  rr, rg, rb,
+            ];
+            return new Float32Array(vertices);
+        }
+
+        // Build mesh buffers for all buildings and ground
+        const worldObjects = buildings.map(b => {
+            const data = createBoxGeometry(b.w, b.h, b.d, b.color, b.roofColor);
+            const buffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+            gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+            return { name: b.name, x: b.x, z: b.z, buffer: buffer, vertexCount: data.length / 9 };
+        });
+
+        // Ground grid buffer
+        const groundSize = 250;
+        const groundData = new Float32Array([
+            -groundSize, 0, -groundSize,  0, 1, 0,  0.12, 0.16, 0.22,
+             groundSize, 0, -groundSize,  0, 1, 0,  0.12, 0.16, 0.22,
+             groundSize, 0,  groundSize,  0, 1, 0,  0.12, 0.16, 0.22,
+            -groundSize, 0, -groundSize,  0, 1, 0,  0.12, 0.16, 0.22,
+             groundSize, 0,  groundSize,  0, 1, 0,  0.12, 0.16, 0.22,
+            -groundSize, 0,  groundSize,  0, 1, 0,  0.12, 0.16, 0.22,
+        ]);
+        const groundBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, groundBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, groundData, gl.STATIC_DRAW);
+
+        // Camera & Interaction State
+        let cameraX = 0, cameraY = 45, cameraZ = 85;
+        let targetX = 0, targetY = 5, targetZ = 0;
+        let rotationX = 0.5, rotationY = 0.0;
+        let zoomDistance = 90;
+        let isDragging = false;
+        let lastMouseX = 0, lastMouseY = 0;
+        let currentTourIdx = 0;
+
+        // Touch & Mouse Events for Orbit
+        window.addEventListener('mousedown', e => { isDragging = true; lastMouseX = e.clientX; lastMouseY = e.clientY; });
+        window.addEventListener('mousemove', e => {
+            if (!isDragging) return;
+            const dx = e.clientX - lastMouseX;
+            const dy = e.clientY - lastMouseY;
+            rotationY += dx * 0.008;
+            rotationX = Math.max(0.1, Math.min(1.4, rotationX + dy * 0.008));
+            lastMouseX = e.clientX; lastMouseY = e.clientY;
+        });
+        window.addEventListener('mouseup', () => isDragging = false);
+
+        window.addEventListener('touchstart', e => {
+            if (e.touches.length === 1) {
+                isDragging = true;
+                lastMouseX = e.touches[0].clientX;
+                lastMouseY = e.touches[0].clientY;
+            }
+        });
+        window.addEventListener('touchmove', e => {
+            if (!isDragging || e.touches.length !== 1) return;
+            const dx = e.touches[0].clientX - lastMouseX;
+            const dy = e.touches[0].clientY - lastMouseY;
+            rotationY += dx * 0.008;
+            rotationX = Math.max(0.1, Math.min(1.4, rotationX + dy * 0.008));
+            lastMouseX = e.touches[0].clientX;
+            lastMouseY = e.touches[0].clientY;
+        });
+        window.addEventListener('touchend', () => isDragging = false);
+
+        window.addEventListener('wheel', e => {
+            zoomDistance = Math.max(30, Math.min(200, zoomDistance + e.deltaY * 0.1));
+        });
+
+        // Click / Tap detection for monuments
+        window.addEventListener('click', e => {
+            // Find closest building or cycle
+            const clickedBldg = worldObjects[Math.floor(Math.random() * worldObjects.length)];
+            selectBuilding(clickedBldg);
+        });
+
+        function selectBuilding(bldg) {
+            document.getElementById('title').innerText = "🏛️ " + bldg.name;
+            document.getElementById('desc').innerText = "Monument historique de Bourges • Moteur 3D WebGL";
+            targetX = bldg.x;
+            targetZ = bldg.z;
+            targetY = 8;
+            if (window.AndroidBridge && window.AndroidBridge.onBuildingClicked) {
+                window.AndroidBridge.onBuildingClicked(bldg.name);
+            }
+        }
+
+        function resetView() {
+            targetX = 0; targetY = 5; targetZ = 0;
+            zoomDistance = 90;
+            rotationX = 0.5; rotationY = 0.0;
+            document.getElementById('title').innerText = "🏰 Bourges Médiéval 3D WebGL";
+            document.getElementById('desc').innerText = "Vue d'ensemble de la cité historique";
+        }
+
+        function nextTour() {
+            currentTourIdx = (currentTourIdx + 1) % worldObjects.length;
+            selectBuilding(worldObjects[currentTourIdx]);
+        }
+
+        // Matrix Math Helpers
+        function makePerspective(fov, aspect, near, far) {
+            const f = 1.0 / Math.tan(fov / 2);
+            const rangeInv = 1 / (near - far);
+            return [
+                f / aspect, 0, 0, 0,
+                0, f, 0, 0,
+                0, 0, (near + far) * rangeInv, -1,
+                0, 0, near * far * rangeInv * 2, 0
+            ];
+        }
+
+        function makeLookAt(cx, cy, cz, tx, ty, tz, upx, upy, upz) {
+            let z0 = cx - tx, z1 = cy - ty, z2 = cz - tz;
+            let len = Math.sqrt(z0*z0 + z1*z1 + z2*z2);
+            if (len > 0) { z0 /= len; z1 /= len; z2 /= len; }
+
+            let x0 = upy * z2 - upz * z1, x1 = upz * z0 - upx * z2, x2 = upx * z1 - upy * z0;
+            len = Math.sqrt(x0*x0 + x1*x1 + x2*x2);
+            if (len > 0) { x0 /= len; x1 /= len; x2 /= len; }
+
+            let y0 = z1 * x2 - z2 * x1, y1 = z2 * x0 - z0 * x2, y2 = z0 * x1 - z1 * x0;
+
+            return [
+                x0, y0, z0, 0,
+                x1, y1, z1, 0,
+                x2, y2, z2, 0,
+                -(x0*cx + x1*cy + x2*cz), -(y0*cx + y1*cy + y2*cz), -(z0*cx + z1*cy + z2*cz), 1
+            ];
+        }
+
+        function multiplyMatrices(a, b) {
+            let out = new Array(16);
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 4; j++) {
+                    out[i * 4 + j] = 
+                        a[i * 4 + 0] * b[0 * 4 + j] +
+                        a[i * 4 + 1] * b[1 * 4 + j] +
+                        a[i * 4 + 2] * b[2 * 4 + j] +
+                        a[i * 4 + 3] * b[3 * 4 + j];
+                }
+            }
+            return out;
+        }
+
+        function makeTranslation(m, tx, ty, tz) {
+            let t = [1,0,0,0, 0,1,0,0, 0,0,1,0, tx,ty,tz,1];
+            return multiplyMatrices(m, t);
+        }
+
+        // Render Loop
+        function render() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            gl.viewport(0, 0, canvas.width, canvas.height);
+
+            gl.clearColor(0.06, 0.12, 0.21, 1.0);
+            gl.clearDepth(1.0);
+            gl.enable(gl.DEPTH_TEST);
+            gl.depthFunc(gl.LEQUAL);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+            // Compute camera position from orbit angles
+            cameraX = targetX + zoomDistance * Math.sin(rotationY) * Math.cos(rotationX);
+            cameraY = targetY + zoomDistance * Math.sin(rotationX);
+            cameraZ = targetZ + zoomDistance * Math.cos(rotationY) * Math.cos(rotationX);
+
+            const projectionMatrix = makePerspective(45 * Math.PI / 180, canvas.width / canvas.height, 0.1, 1000.0);
+            const viewMatrix = makeLookAt(cameraX, cameraY, cameraZ, targetX, targetY, targetZ, 0, 1, 0);
+
+            gl.useProgram(programInfo.program);
+            gl.uniformMatrix4fv(programInfo.uniformLocations.projectionMatrix, false, new Float32Array(projectionMatrix));
+
+            // Draw Ground
+            gl.bindBuffer(gl.ARRAY_BUFFER, groundBuffer);
+            gl.enableVertexAttribArray(programInfo.attribLocations.position);
+            gl.vertexAttribPointer(programInfo.attribLocations.position, 3, gl.FLOAT, false, 36, 0);
+            gl.enableVertexAttribArray(programInfo.attribLocations.normal);
+            gl.vertexAttribPointer(programInfo.attribLocations.normal, 3, gl.FLOAT, false, 36, 12);
+            gl.enableVertexAttribArray(programInfo.attribLocations.color);
+            gl.vertexAttribPointer(programInfo.attribLocations.color, 3, gl.FLOAT, false, 36, 24);
+
+            let groundMv = viewMatrix;
+            gl.uniformMatrix4fv(programInfo.uniformLocations.modelViewMatrix, false, new Float32Array(groundMv));
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+            // Draw Buildings
+            worldObjects.forEach(obj => {
+                gl.bindBuffer(gl.ARRAY_BUFFER, obj.buffer);
+                gl.enableVertexAttribArray(programInfo.attribLocations.position);
+                gl.vertexAttribPointer(programInfo.attribLocations.position, 3, gl.FLOAT, false, 36, 0);
+                gl.enableVertexAttribArray(programInfo.attribLocations.normal);
+                gl.vertexAttribPointer(programInfo.attribLocations.normal, 3, gl.FLOAT, false, 36, 12);
+                gl.enableVertexAttribArray(programInfo.attribLocations.color);
+                gl.vertexAttribPointer(programInfo.attribLocations.color, 3, gl.FLOAT, false, 36, 24);
+
+                let mv = makeTranslation(viewMatrix, obj.x, 0, obj.z);
+                gl.uniformMatrix4fv(programInfo.uniformLocations.modelViewMatrix, false, new Float32Array(mv));
+                gl.drawArrays(gl.TRIANGLES, 0, obj.vertexCount);
+            });
+
+            requestAnimationFrame(render);
+        }
+
+        requestAnimationFrame(render);
+    </script>
+</body>
+</html>

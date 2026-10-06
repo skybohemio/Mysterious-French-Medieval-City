@@ -12,11 +12,13 @@ data class TourRoute(
     val nameDe: String,
     val nameEs: String,
     val nameNl: String,
+    val nameIt: String = "",
     val descriptionFr: String,
     val descriptionEn: String,
     val descriptionDe: String,
     val descriptionEs: String,
     val descriptionNl: String,
+    val descriptionIt: String = "",
     val siteIds: List<Int>, // list of site IDs in order
     val colorHex: String,
     val durationMin: Int,
@@ -36,6 +38,7 @@ data class TourRoute(
             "DE" -> nameDe
             "ES" -> nameEs
             "NL" -> nameNl
+            "IT" -> nameIt
             else -> ""
         }
         return if (name.isNotBlank()) name else nameFr
@@ -49,6 +52,7 @@ data class TourRoute(
             "DE" -> descriptionDe
             "ES" -> descriptionEs
             "NL" -> descriptionNl
+            "IT" -> descriptionIt
             else -> ""
         }
         return if (desc.isNotBlank()) desc else descriptionFr

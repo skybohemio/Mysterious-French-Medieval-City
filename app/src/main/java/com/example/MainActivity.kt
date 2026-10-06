@@ -31,6 +31,8 @@ class MainActivity : ComponentActivity() {
             applicationContext,
             getSharedPreferences("osmdroid", MODE_PRIVATE)
         )
+        // Pre-install bundled offline map tiles and assets from APK
+        com.example.ui.util.OfflineMapBundleManager.installOfflineMapBundle(applicationContext)
 
         enableEdgeToEdge()
         setContent {

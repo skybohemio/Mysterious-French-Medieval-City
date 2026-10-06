@@ -47,6 +47,7 @@ fun OptionsScreen(
 ) {
     val currentLanguage by viewModel.selectedLanguage.collectAsState()
     val isFemaleVoice by viewModel.isFemaleVoice.collectAsState()
+    val isOfflineAudioPreferred by viewModel.isOfflineAudioPreferred.collectAsState()
     val cachedTiles by viewModel.cachedMapTiles.collectAsState()
     val isOfflineMapEnabled by viewModel.isOfflineMapEnabled.collectAsState()
     val currentUser by viewModel.currentUser.collectAsState()
@@ -119,8 +120,57 @@ fun OptionsScreen(
         // SECTION 1: 🎧 AUDIO & ÉCOUTE
         OptionsSectionCard(
             title = "🎧 Niveau Sonore & Audioguide",
-            subtitle = "Contrôlez le volume et le timbre de la narration"
+            subtitle = "Contrôlez le volume, le mode hors-ligne et le timbre"
         ) {
+            // Offline Audio Mode (Default)
+            Surface(
+                color = if (isOfflineAudioPreferred) Color(0xFF2E7D32).copy(alpha = 0.12f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(12.dp).fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "Audio Hors-Ligne (Défaut)",
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Surface(
+                                shape = RoundedCornerShape(4.dp),
+                                color = if (isOfflineAudioPreferred) Color(0xFF2E7D32) else SandstoneGold
+                            ) {
+                                Text(
+                                    text = if (isOfflineAudioPreferred) "ACTIF" else "ONLINE HD",
+                                    color = Color.White,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                        Text(
+                            text = if (isOfflineAudioPreferred)
+                                "⚡ Voix locale Android instantanée : zéro internet, 100% autonome."
+                            else
+                                "☁️ Mode Cloud HD activé : nécessite du réseau.",
+                            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        )
+                    }
+                    Switch(
+                        checked = isOfflineAudioPreferred,
+                        onCheckedChange = { viewModel.setOfflineAudioPreferred(it) },
+                        modifier = Modifier.testTag("switch_offline_audio")
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
             // Volume Slider
             Column(modifier = Modifier.fillMaxWidth()) {
                 Row(
@@ -207,6 +257,10 @@ fun OptionsScreen(
                         text = if (isFemaleVoice) "Voix Féminine (Chaleureuse & Claire)" else "Voix Masculine (Grave & Mystérieuse)",
                         style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                     )
+                    Text(
+                        text = viewModel.ttsPlayer.getVoiceName(currentLanguage.code),
+                        style = MaterialTheme.typography.labelSmall.copy(color = SandstoneGold, fontWeight = FontWeight.Bold)
+                    )
                 }
 
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -231,9 +285,16 @@ fun OptionsScreen(
             OutlinedButton(
                 onClick = {
                     testSoundPlayed = true
-                    viewModel.ttsPlayer.speak(
-                        "Bienvenue à Bourges, cité des alchimistes et du Berry mystérieux."
-                    )
+                    val testPhrase = when (currentLanguage.code) {
+                        "FR" -> "Bienvenue à Bourges, cité des alchimistes et du Berry mystérieux."
+                        "EN" -> "Welcome to Bourges, city of alchemists and mystical Berry."
+                        "ES" -> "Bienvenido a Bourges, ciudad de los alquimistas y del Berry misterioso."
+                        "DE" -> "Willkommen in Bourges, der Stadt der Alchemisten und des geheimnisvollen Berry."
+                        "NL" -> "Welkom in Bourges, stad van de alchemisten en het mysterieuze Berry."
+                        "IT" -> "Benvenuti a Bourges, città degli alchimisti e del Berry misterioso."
+                        else -> "Bienvenue à Bourges."
+                    }
+                    viewModel.ttsPlayer.speak(testPhrase)
                 },
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier.fillMaxWidth().testTag("btn_test_audio_voice")
@@ -306,7 +367,7 @@ fun OptionsScreen(
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { viewModel.setLanguage(lang) }
+                            .clickable { viewModel.setAudioLanguage(lang) }
                             .border(
                                 width = if (isSelected) 2.dp else 1.dp,
                                 color = if (isSelected) SandstoneGold else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
@@ -378,13 +439,28 @@ fun OptionsScreen(
                     )
                     Spacer(modifier = Modifier.width(10.dp))
                     Column(modifier = Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "Mode Hors-Ligne Intégré d'Origine",
+                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                                color = Color(0xFF2E7D32)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Surface(
+                                shape = RoundedCornerShape(4.dp),
+                                color = Color(0xFF2E7D32)
+                            ) {
+                                Text(
+                                    text = "PRÉ-INSTALLÉ",
+                                    color = Color.White,
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                                )
+                            }
+                        }
                         Text(
-                            text = if (cachedTiles.isNotEmpty()) "Pack Hors-Ligne Prêt (${cachedTiles.size} zones)" else "Mode hors-ligne non synchronisé",
-                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                            color = if (cachedTiles.isNotEmpty()) Color(0xFF2E7D32) else MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = "170 monuments et récits déjà embarqués dans l'application.",
+                            text = "Carte OpenStreetMap complète de Bourges et 170 audioguides multilingues (FR, EN, ES, DE, NL, IT) sont pré-embarqués dans l'application dès le téléchargement (100% autonome sur le terrain).",
                             style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                         )
                     }
@@ -417,6 +493,23 @@ fun OptionsScreen(
             }
 
             Spacer(modifier = Modifier.height(10.dp))
+
+            // Action: Sync 170 CSV POIs
+            Button(
+                onClick = { viewModel.forceSyncAllCsvSites() },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF1B5E20),
+                    contentColor = Color.White
+                ),
+                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier.fillMaxWidth().testTag("btn_sync_all_csv_pois")
+            ) {
+                Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Synchroniser les 170 POIs du CSV 📍", fontWeight = FontWeight.Bold)
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             // Action: Cache Map Tiles
             Button(

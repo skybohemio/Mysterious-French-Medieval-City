@@ -1,5 +1,6 @@
 package com.example.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -24,6 +25,7 @@ import coil.compose.AsyncImage
 import com.example.data.Site
 import com.example.ui.theme.RegalBlue
 import com.example.ui.theme.SandstoneGold
+import com.example.ui.util.BourgesIllustrationHelper
 import com.example.ui.viewmodel.GuideViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -42,6 +44,7 @@ fun MysteryArticleSheet(
     val title = site.getLocalizedTitle(langCode)
     val narration = site.getLocalizedNarration(langCode)
     val article = if (site.mysteryArticle.isNotBlank()) site.mysteryArticle else site.getLocalizedDescription(langCode)
+    val siteImage = BourgesIllustrationHelper.resolveImageForSite(site)
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -56,50 +59,17 @@ fun MysteryArticleSheet(
                 .verticalScroll(rememberScrollState())
                 .padding(bottom = 32.dp)
         ) {
-            // Hero Image
-            Box(
+            // Hero Illustrated Banner with Dark Scrim (No bare gradients)
+            IllustratedScrimBox(
+                imageModel = siteImage,
+                contentDescription = title,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(230.dp)
+                    .height(240.dp),
+                topScrimAlpha = 0.35f,
+                middleScrimAlpha = 0.55f,
+                bottomScrimAlpha = 0.90f
             ) {
-                if (site.imageUrl.isNotBlank()) {
-                    AsyncImage(
-                        model = site.imageUrl,
-                        contentDescription = title,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                Brush.verticalGradient(
-                                    colors = listOf(RegalBlue, Color(0xFF0F1A2A))
-                                )
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.AutoAwesome,
-                            contentDescription = null,
-                            tint = SandstoneGold,
-                            modifier = Modifier.size(64.dp)
-                        )
-                    }
-                }
-
-                // Gradient overlay
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.85f))
-                            )
-                        )
-                )
-
                 // Category pill & Close button
                 Row(
                     modifier = Modifier
@@ -124,7 +94,7 @@ fun MysteryArticleSheet(
                         onClick = onDismiss,
                         modifier = Modifier
                             .size(36.dp)
-                            .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                            .background(Color.Black.copy(alpha = 0.6f), CircleShape)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Close,
@@ -134,7 +104,7 @@ fun MysteryArticleSheet(
                     }
                 }
 
-                // Title overlay
+                // Title overlay with high contrast
                 Column(
                     modifier = Modifier
                         .align(Alignment.BottomStart)
@@ -250,14 +220,72 @@ fun MysteryArticleSheet(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                Text(
-                    text = article,
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        lineHeight = 26.sp,
-                        letterSpacing = 0.3.sp
-                    ),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                // In-article Illustration Feature with Dark Scrim & Descriptive Caption
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                ) {
+                    IllustratedScrimBox(
+                        imageModel = siteImage,
+                        contentDescription = title,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(180.dp),
+                        topScrimAlpha = 0.15f,
+                        middleScrimAlpha = 0.40f,
+                        bottomScrimAlpha = 0.88f
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .align(Alignment.BottomStart)
+                                .padding(12.dp)
+                        ) {
+                            Surface(
+                                color = SandstoneGold,
+                                shape = RoundedCornerShape(6.dp),
+                                modifier = Modifier.padding(bottom = 6.dp)
+                            ) {
+                                Text(
+                                    text = "CLÉ VISUELLE DU POINT D'INTÉRÊT",
+                                    color = Color.Black,
+                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.ExtraBold),
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                )
+                            }
+                            Text(
+                                text = BourgesIllustrationHelper.getIllustrationCaption(site, langCode),
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = Color.White
+                                )
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Pristine Article Text Container for Maximum Readability
+                Surface(
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                    shape = RoundedCornerShape(14.dp),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = article,
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            lineHeight = 26.sp,
+                            letterSpacing = 0.3.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
 
                 if (narration.isNotBlank() && narration != article) {
                     Spacer(modifier = Modifier.height(20.dp))
@@ -271,11 +299,18 @@ fun MysteryArticleSheet(
                         color = MaterialTheme.colorScheme.secondary
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = narration,
-                        style = MaterialTheme.typography.bodyMedium.copy(lineHeight = 22.sp),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Surface(
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = narration,
+                            style = MaterialTheme.typography.bodyMedium.copy(lineHeight = 22.sp),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(14.dp)
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))

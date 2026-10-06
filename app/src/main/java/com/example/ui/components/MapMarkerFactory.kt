@@ -44,6 +44,30 @@ object MapMarkerFactory {
         }
     }
 
+    /**
+     * Numbered Step Marker for an active tour route (1, 2, 3, 4...).
+     */
+    fun getRouteStepMarker(
+        context: Context,
+        stepNumber: Int,
+        isSelected: Boolean = false
+    ): Drawable {
+        val key = "ROUTE_STEP_${stepNumber}_${if (isSelected) "SEL" else "NORM"}"
+        return cache.getOrPut(key) {
+            createStepPinDrawable(context, stepNumber, isSelected)
+        }
+    }
+
+    /**
+     * Subtle small dot for sites not in the active tour.
+     */
+    fun getDimmedSiteMarker(context: Context): Drawable {
+        val key = "SITE_DIMMED"
+        return cache.getOrPut(key) {
+            createDimmedDotDrawable(context)
+        }
+    }
+
     private fun getCategoryColor(category: String): Int {
         return when (category.uppercase()) {
             "CATHEDRAL" -> 0xFFC5A059.toInt()  // Sandstone Gold
@@ -248,6 +272,133 @@ object MapMarkerFactory {
             color = 0xFF1976D2.toInt()
         }
         canvas.drawCircle(cx, cy, 5f * density, bluePaint)
+
+        return BitmapDrawable(context.resources, bitmap)
+    }
+
+    /**
+     * Needle teardrop marker displaying a bold step number (1, 2, 3...) for tour guidance.
+     */
+    private fun createStepPinDrawable(
+        context: Context,
+        stepNumber: Int,
+        isSelected: Boolean
+    ): Drawable {
+        val density = context.resources.displayMetrics.density
+        val baseColor = if (isSelected) 0xFFFFB300.toInt() else 0xFF1A365D.toInt() // Vibrant Amber or Deep Regal Blue
+
+        val widthDp = if (isSelected) 36f else 30f
+        val heightDp = if (isSelected) 50f else 42f
+
+        val w = (widthDp * density).toInt()
+        val h = (heightDp * density).toInt()
+
+        val bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+
+        val cx = w / 2f
+        val topPadding = (if (isSelected) 5f else 3f) * density
+        val bottomMargin = 2f * density
+        val tipY = h - bottomMargin
+        val radius = (if (isSelected) 14f else 12f) * density
+        val cy = topPadding + radius
+
+        // Shadow under tip
+        val shadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.FILL
+            color = 0x50000000
+        }
+        val shadowW = 7f * density
+        val shadowH = 3f * density
+        canvas.drawOval(
+            RectF(cx - shadowW, tipY - shadowH / 2f, cx + shadowW, tipY + shadowH / 2f),
+            shadowPaint
+        )
+
+        // Pulsing radar / outer halo when selected
+        if (isSelected) {
+            val haloPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                style = Paint.Style.STROKE
+                color = 0xFFFFD54F.toInt()
+                strokeWidth = 3f * density
+            }
+            canvas.drawCircle(cx, cy, radius + 4f * density, haloPaint)
+        }
+
+        // Teardrop path
+        val path = Path()
+        val angle = 32.0
+        val rad = Math.toRadians(angle)
+        val dx = (radius * cos(rad)).toFloat()
+        val dy = (radius * sin(rad)).toFloat()
+
+        path.moveTo(cx + dx, cy + dy)
+        path.lineTo(cx, tipY)
+        path.lineTo(cx - dx, cy + dy)
+        val circleRect = RectF(cx - radius, cy - radius, cx + radius, cy + radius)
+        val startArcAngle = 90f + angle.toFloat()
+        val sweepAngle = 360f - 2f * angle.toFloat()
+        path.arcTo(circleRect, startArcAngle, sweepAngle, false)
+        path.close()
+
+        // Fill body
+        val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.FILL
+            color = baseColor
+        }
+        val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+            color = android.graphics.Color.WHITE
+            strokeWidth = 2f * density
+        }
+        canvas.drawPath(path, fillPaint)
+        canvas.drawPath(path, strokePaint)
+
+        // Inner white disc for the number
+        val discRadius = radius * 0.65f
+        val discPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.FILL
+            color = android.graphics.Color.WHITE
+        }
+        canvas.drawCircle(cx, cy, discRadius, discPaint)
+
+        // Step number text
+        val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = baseColor
+            textSize = (if (isSelected) 14f else 12f) * density
+            typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD)
+            textAlign = Paint.Align.CENTER
+        }
+        val textY = cy - ((textPaint.descent() + textPaint.ascent()) / 2f)
+        canvas.drawText(stepNumber.toString(), cx, textY, textPaint)
+
+        return BitmapDrawable(context.resources, bitmap)
+    }
+
+    /**
+     * Subtle small gray dot for POIs outside the active tour.
+     */
+    private fun createDimmedDotDrawable(context: Context): Drawable {
+        val density = context.resources.displayMetrics.density
+        val size = (16f * density).toInt()
+
+        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        val cx = size / 2f
+        val cy = size / 2f
+        val r = 5f * density
+
+        val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.FILL
+            color = 0x669E9E9E // Semi-transparent gray
+        }
+        val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+            color = 0xAAFFFFFF.toInt()
+            strokeWidth = 1f * density
+        }
+        canvas.drawCircle(cx, cy, r, fillPaint)
+        canvas.drawCircle(cx, cy, r, strokePaint)
 
         return BitmapDrawable(context.resources, bitmap)
     }

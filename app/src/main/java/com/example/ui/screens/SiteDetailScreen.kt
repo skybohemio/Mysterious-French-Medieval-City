@@ -3,6 +3,7 @@ package com.example.ui.screens
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -20,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.example.ui.viewmodel.AppLanguage
 import com.example.ui.viewmodel.GeminiImageState
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -50,6 +52,7 @@ fun SiteDetailScreen(
     geminiImageState: GeminiImageState,
     onShowOnMap: () -> Unit,
     onPlayArticleClick: ((Site) -> Unit)? = null,
+    onLanguageChange: ((String) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -482,17 +485,91 @@ fun SiteDetailScreen(
                                 )
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Column {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(
+                                            text = Locales.string("immersive_audio_guide", langCode),
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                                        )
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Surface(
+                                            shape = RoundedCornerShape(4.dp),
+                                            color = Color(0xFF2E7D32)
+                                        ) {
+                                            Text(
+                                                text = "⚡ HORS-LIGNE",
+                                                color = Color.White,
+                                                fontSize = 9.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                                            )
+                                        }
+                                    }
                                     Text(
-                                        text = if (langCode == "FR") "Audioguide immersif" else "Immersive Audio Guide",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                                    )
-                                    Text(
-                                        text = "${site.audioDurationSec} sec • ${if (langCode == "FR") "Voix de haute qualité" else "High-quality narration"}",
+                                        text = "${site.audioDurationSec} sec • Toutes les voix & audio embarqués (0 Mo)",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                                     )
+                                }
+                            }
+                        }
+
+                        // Audio Narration Language Selector
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.6f), RoundedCornerShape(10.dp))
+                                .padding(8.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = Locales.string("narration_language", langCode),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                                Text(
+                                    text = AppLanguage.values().firstOrNull { it.code.equals(langCode, ignoreCase = true) }?.let { "${it.flag} ${it.displayName}" } ?: langCode,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                AppLanguage.values().forEach { lang ->
+                                    val isSelected = lang.code.equals(langCode, ignoreCase = true)
+                                    Surface(
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clickable {
+                                                onLanguageChange?.invoke(lang.code)
+                                            }
+                                            .testTag("detail_audio_lang_${lang.code}")
+                                    ) {
+                                        Column(
+                                            modifier = Modifier.padding(vertical = 4.dp),
+                                            horizontalAlignment = Alignment.CenterHorizontally
+                                        ) {
+                                            Text(text = lang.flag, fontSize = 14.sp)
+                                            Text(
+                                                text = lang.code,
+                                                style = MaterialTheme.typography.labelSmall,
+                                                fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Normal,
+                                                color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -608,7 +685,7 @@ fun getSiteImageRes(site: Site): Int {
                 "PALACE" -> R.drawable.img_palais_jacques_coeur
                 "NATURE" -> R.drawable.img_marais
                 "MUSEUM" -> R.drawable.img_musee_berry
-                else -> R.drawable.img_bourges_hero_1783762752502
+                else -> R.drawable.img_cathedrale
             }
         }
     }

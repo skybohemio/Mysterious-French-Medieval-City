@@ -28,6 +28,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.data.Site
 import com.example.ui.theme.RegalBlue
 import com.example.ui.theme.SandstoneGold
+import com.example.ui.viewmodel.AppLanguage
 import com.example.ui.viewmodel.GuideViewModel
 
 @Composable
@@ -44,6 +45,7 @@ fun AudioPlayerController(
     val speed by viewModel.ttsSpeed.collectAsStateWithLifecycle()
     val isFemaleVoice by viewModel.isFemaleVoice.collectAsStateWithLifecycle()
     val currentLanguage by viewModel.selectedLanguage.collectAsStateWithLifecycle()
+    val isOfflineAudioPreferred by viewModel.isOfflineAudioPreferred.collectAsStateWithLifecycle()
 
     var isExpanded by remember { mutableStateOf(false) }
 
@@ -104,6 +106,64 @@ fun AudioPlayerController(
                                 maxLines = 1
                             )
                         }
+
+                        // Mini Player Language Quick Selector
+                        var showMiniLangMenu by remember { mutableStateOf(false) }
+                        Box {
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+                                modifier = Modifier
+                                    .clickable { showMiniLangMenu = true }
+                                    .testTag("mini_player_lang_btn")
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 7.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(text = currentLanguage.flag, fontSize = 14.sp)
+                                    Spacer(modifier = Modifier.width(3.dp))
+                                    Text(
+                                        text = currentLanguage.code,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                            }
+                            DropdownMenu(
+                                expanded = showMiniLangMenu,
+                                onDismissRequest = { showMiniLangMenu = false }
+                            ) {
+                                AppLanguage.values().forEach { lang ->
+                                    DropdownMenuItem(
+                                        leadingIcon = { Text(lang.flag, fontSize = 16.sp) },
+                                        text = {
+                                            Text(
+                                                text = "${lang.displayName} (${lang.code})",
+                                                fontWeight = if (lang == currentLanguage) FontWeight.Bold else FontWeight.Normal
+                                            )
+                                        },
+                                        trailingIcon = {
+                                            if (lang == currentLanguage) {
+                                                Icon(
+                                                    Icons.Default.Check,
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.primary,
+                                                    modifier = Modifier.size(16.dp)
+                                                )
+                                            }
+                                        },
+                                        onClick = {
+                                            viewModel.setAudioLanguage(lang)
+                                            showMiniLangMenu = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.width(6.dp))
 
                         // Play/Pause Action
                         IconButton(
@@ -257,19 +317,97 @@ fun AudioPlayerController(
 
                         Box(
                             modifier = Modifier
-                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), RoundedCornerShape(6.dp))
+                                .background(if (isOfflineAudioPreferred) Color(0xFF2E7D32).copy(alpha = 0.15f) else MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), RoundedCornerShape(6.dp))
                                 .padding(horizontal = 6.dp, vertical = 2.dp)
                         ) {
                             Text(
-                                text = "✨ ${com.example.ui.screens.Locales.string("edge_tts_badge", currentLanguage.code)}",
+                                text = if (isOfflineAudioPreferred) "⚡ Hors-Ligne (Défaut)" else "✨ ${com.example.ui.screens.Locales.string("edge_tts_badge", currentLanguage.code)}",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.primary,
+                                color = if (isOfflineAudioPreferred) Color(0xFF2E7D32) else MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.Bold
                             )
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // AUDIO LANGUAGE SELECTOR (Francés, Inglés, Español, Deutsch, Nederlands, Italiano)
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                        ),
+                        shape = RoundedCornerShape(14.dp),
+                        modifier = Modifier.fillMaxWidth().testTag("expanded_audio_lang_selector")
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.Translate,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = com.example.ui.screens.Locales.string("audio_language_title", currentLanguage.code),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                                Text(
+                                    text = "${currentLanguage.flag} ${currentLanguage.displayName}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(6.dp))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                AppLanguage.values().forEach { lang ->
+                                    val isSelected = lang == currentLanguage
+                                    Surface(
+                                        shape = RoundedCornerShape(10.dp),
+                                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
+                                        shadowElevation = if (isSelected) 2.dp else 0.dp,
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clickable {
+                                                viewModel.setAudioLanguage(lang)
+                                            }
+                                            .testTag("audio_lang_pill_${lang.code}")
+                                    ) {
+                                        Column(
+                                            modifier = Modifier.padding(vertical = 6.dp),
+                                            horizontalAlignment = Alignment.CenterHorizontally
+                                        ) {
+                                            Text(text = lang.flag, fontSize = 16.sp)
+                                            Text(
+                                                text = lang.code,
+                                                style = MaterialTheme.typography.labelSmall,
+                                                fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Medium,
+                                                color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
 
                     // Live Highlight Text Scroller
                     Card(

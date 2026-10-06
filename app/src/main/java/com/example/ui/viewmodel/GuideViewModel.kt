@@ -33,13 +33,15 @@ import java.util.concurrent.TimeUnit
 enum class AppLanguage(val code: String, val displayName: String, val flag: String) {
     FR("FR", "Français", "🇫🇷"),
     EN("EN", "English", "🇬🇧"),
-    DE("DE", "Deutsch", "🇩🇪"),
     ES("ES", "Español", "🇪🇸"),
-    NL("NL", "Nederlands", "🇳🇱")
+    DE("DE", "Deutsch", "🇩🇪"),
+    NL("NL", "Nederlands", "🇳🇱"),
+    IT("IT", "Italiano", "🇮🇹")
 }
 
 class GuideViewModel(application: Application) : AndroidViewModel(application) {
 
+    private val prefs = application.getSharedPreferences("bourges_user_settings", Context.MODE_PRIVATE)
     private val repository: SiteRepository
     val ttsPlayer: TtsPlayer
 
@@ -123,6 +125,7 @@ class GuideViewModel(application: Application) : AndroidViewModel(application) {
     val ttsWordHighlight: StateFlow<Pair<Int, Int>>
     val ttsCurrentText: StateFlow<String>
     val isFemaleVoice: StateFlow<Boolean>
+    val isOfflineAudioPreferred: StateFlow<Boolean>
 
     // Admin state for messages
     private val _adminMessage = MutableStateFlow<String?>(null)
@@ -173,6 +176,9 @@ class GuideViewModel(application: Application) : AndroidViewModel(application) {
         )
         
         ttsPlayer = TtsPlayer(application)
+        val initialOfflinePref = prefs.getBoolean("offline_audio_preferred", true)
+        ttsPlayer.setOfflineAudioPreferred(initialOfflinePref)
+        isOfflineAudioPreferred = ttsPlayer.isOfflineAudioPreferred
         isTtsPlaying = ttsPlayer.isPlaying
         ttsProgress = ttsPlayer.progress
         ttsWordHighlight = ttsPlayer.currentWordRange
@@ -266,10 +272,10 @@ class GuideViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
 
-        // Ensure all 150+ POIs are loaded into database
+        // Ensure all 170 POIs from CSV are loaded into database
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                if (repository.getSiteCount() < 150) {
+                if (repository.getSiteCount() < 170) {
                     val csvContent = application.assets.open("poi_export.csv").use { stream ->
                         stream.readBytes().toString(Charsets.UTF_8)
                     }
@@ -278,8 +284,12 @@ class GuideViewModel(application: Application) : AndroidViewModel(application) {
                         repository.insertSites(sitesToInsert)
                     }
                 }
+                // Pre-populate offline map zones immediately on startup
+                if (repository.cachedMapTiles.value.isEmpty()) {
+                    cacheBourgesOfflineMap()
+                }
             } catch (e: Exception) {
-                android.util.Log.e("GuideViewModel", "Error ensuring full 150+ sites in DB", e)
+                android.util.Log.e("GuideViewModel", "Error ensuring full 170 sites in DB", e)
             }
         }
     }
@@ -530,7 +540,7 @@ class GuideViewModel(application: Application) : AndroidViewModel(application) {
         
         // Ensure synthesized language is correct
         ttsPlayer.setLanguageByCode(currentLang)
-        ttsPlayer.speak(textToSpeak)
+        ttsPlayer.speak(textToSpeak, siteId = site.id, langCode = currentLang)
     }
 
     fun startArticleNarration(site: Site) {
@@ -566,6 +576,42 @@ class GuideViewModel(application: Application) : AndroidViewModel(application) {
     fun setLanguage(language: AppLanguage) {
         _selectedLanguage.value = language
         ttsPlayer.setLanguageByCode(language.code)
+        try {
+            prefs.edit().putString("selected_language", language.code).apply()
+        } catch (_: Exception) {}
+    }
+
+    fun setAudioLanguage(language: AppLanguage) {
+        setLanguage(language)
+        // If an audio guide is currently playing, seamlessly restart it with the narration in the chosen language!
+        val currentActive = _activeTtsSite.value ?: _selectedSite.value
+        if (currentActive != null && ttsPlayer.isPlaying.value) {
+            startAudioGuide(currentActive)
+        }
+    }
+
+    fun setOfflineAudioPreferred(enabled: Boolean) {
+        ttsPlayer.setOfflineAudioPreferred(enabled)
+        try {
+            prefs.edit().putBoolean("offline_audio_preferred", enabled).apply()
+        } catch (_: Exception) {}
+    }
+
+    fun forceSyncAllCsvSites() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val csvContent = getApplication<Application>().assets.open("poi_export.csv").use { stream ->
+                    stream.readBytes().toString(Charsets.UTF_8)
+                }
+                val sitesToInsert = com.example.data.CsvManager.parseSitesFromCsv(csvContent)
+                if (sitesToInsert.isNotEmpty()) {
+                    repository.insertSites(sitesToInsert)
+                    _adminMessage.value = "170 points d'intérêt synchronisés avec succès !"
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("GuideViewModel", "Error force syncing all CSV sites", e)
+            }
+        }
     }
 
     fun saveSite(
@@ -576,7 +622,8 @@ class GuideViewModel(application: Application) : AndroidViewModel(application) {
         longitude: Double,
         titleFr: String, titleEn: String, titleDe: String, titleEs: String, titleNl: String,
         descriptionFr: String, descriptionEn: String, descriptionDe: String, descriptionEs: String, descriptionNl: String,
-        narrationFr: String, narrationEn: String, narrationDe: String, narrationEs: String, narrationNl: String
+        narrationFr: String, narrationEn: String, narrationDe: String, narrationEs: String, narrationNl: String,
+        titleIt: String = "", descriptionIt: String = "", narrationIt: String = ""
     ) {
         val currentLang = _selectedLanguage.value.code
         val mainTitle = if (titleFr.isNotBlank()) titleFr else if (titleEn.isNotBlank()) titleEn else ""
@@ -618,16 +665,19 @@ class GuideViewModel(application: Application) : AndroidViewModel(application) {
                 titleDe = titleDe,
                 titleEs = titleEs,
                 titleNl = titleNl,
+                titleIt = titleIt,
                 descriptionFr = descriptionFr,
                 descriptionEn = descriptionEn,
                 descriptionDe = descriptionDe,
                 descriptionEs = descriptionEs,
                 descriptionNl = descriptionNl,
+                descriptionIt = descriptionIt,
                 narrationFr = narrationFr,
                 narrationEn = narrationEn,
                 narrationDe = narrationDe,
                 narrationEs = narrationEs,
-                narrationNl = narrationNl
+                narrationNl = narrationNl,
+                narrationIt = narrationIt
             )
             repository.insert(site)
             _adminMessage.value = when (currentLang) {
@@ -826,13 +876,13 @@ class GuideViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun getNormalizedCoords(lat: Double, lng: Double): Pair<Float, Float> {
-        val minLat = 47.0800
-        val maxLat = 47.0895
-        val minLng = 2.3880
-        val maxLng = 2.4060
+        val minLat = 47.0750
+        val maxLat = 47.0935
+        val minLng = 2.3840
+        val maxLng = 2.4085
 
-        val x = ((lng - minLng) / (maxLng - minLng)).toFloat().coerceIn(0f, 1f)
-        val y = (1.0f - ((lat - minLat) / (maxLat - minLat)).toFloat()).coerceIn(0f, 1f)
+        val x = ((lng - minLng) / (maxLng - minLng)).toFloat().coerceIn(0.01f, 0.99f)
+        val y = (1.0f - ((lat - minLat) / (maxLat - minLat)).toFloat()).coerceIn(0.01f, 0.99f)
         return Pair(x, y)
     }
 
@@ -1058,8 +1108,6 @@ class GuideViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // App Customization & Settings State
-    private val prefs = getApplication<Application>().getSharedPreferences("bourges_user_settings", Context.MODE_PRIVATE)
-
     private val _audioVolume = MutableStateFlow(prefs.getFloat("audio_volume", 1.0f))
     val audioVolume: StateFlow<Float> = _audioVolume.asStateFlow()
 
